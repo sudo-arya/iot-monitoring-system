@@ -24,6 +24,54 @@ db.connect((err) => {
   console.log("Connected to the MySQL database");
 });
 
+
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+// console.log("got data");
+  const query = "SELECT * FROM users_data WHERE email_id = ? AND password = ?";
+  db.query(query, [email, password], (err, results) => {
+    if (err) {
+      console.error("Error during database query:", err);
+      return res.status(500).send("Internal server error");
+    }
+
+    if (results.length > 0) {
+      res.status(200).json({ message: "Login successful", user: results[0] });
+    } else {
+      res.status(401).json({ message: "Invalid email or password" });
+    }
+  });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ignore this one
+
+
+
 // Route to handle sensor data
 app.post("/sensorValue", (req, res) => {
   const { sensorData } = req.body;
@@ -95,6 +143,11 @@ function parseSensorData(sensorData) {
     room: parsedData.room, // Correctly assigned room number
   };
 }
+
+
+
+
+// till here
 
 // Start the server
 const PORT = process.env.PORT || 5000; // Use the PORT variable from .env or default to 3000

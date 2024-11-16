@@ -1,24 +1,47 @@
-import logo from './logo.svg';
+// import logo from './logo.svg';
+
+import React, { useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
+import "./index.css";
+import Home from "./Components/Home";
+import Navbar from "./Components/Navbar";
+import Footer from "./Components/Footer";
+import Seo from "./Components/Seo";
+import Signin from "./Components/Signin";
 import './App.css';
 
 function App() {
+
+  function ScrollToTop() {
+    const { pathname } = useLocation();
+
+    useEffect(() => {
+      window.scrollTo(0, 0);
+    }, [pathname]);
+
+    return null;
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="cs-">
+        <Navbar />
+        <Seo title="Home - Galleon Trading" description="" keywords="" />
+        <ScrollToTop />
+        <div className="flex mx-auto">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/signin" element={<Signin />} />
+          </Routes>
+        </div>
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
