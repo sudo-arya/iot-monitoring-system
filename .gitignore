@@ -21,7 +21,7 @@
 
 # Environment variables
 .env
-
+/backend/hashexistingpasswords.js
 
 npm-debug.log*
 yarn-debug.log*

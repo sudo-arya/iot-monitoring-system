@@ -2,10 +2,13 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mysql = require("mysql2");
 require("dotenv").config(); // Load environment variables
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 // Initialize Express
 const app = express();
 app.use(bodyParser.json()); // To handle JSON request body
+const JWT_SECRET = `${process.env.JWT_SECRET_KEY}`;
 
 // MySQL connection setup using environment variables
 const db = mysql.createConnection({
@@ -26,21 +29,93 @@ db.connect((err) => {
 
 
 
+// app.post("/login", (req, res) => {
+//   const { email, password } = req.body;
+// // console.log("got data");
+//   const query = "SELECT * FROM users_data WHERE email_id = ? AND password = ?";
+//   db.query(query, [email, password], (err, results) => {
+//     if (err) {
+//       console.error("Error during database query:", err);
+//       return res.status(500).send("Internal server error");
+//     }
+
+//     if (results.length > 0) {
+//       res.status(200).json({ message: "Login successful", user: results[0] });
+//     } else {
+//       res.status(401).json({ message: "Invalid email or password" });
+//     }
+//   });
+// });
+
+
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-// console.log("got data");
-  const query = "SELECT * FROM users_data WHERE email_id = ? AND password = ?";
-  db.query(query, [email, password], (err, results) => {
+
+  // Query to find user by email
+  const query = "SELECT * FROM users_data WHERE email_id = ?";
+  db.query(query, [email], async (err, results) => {
     if (err) {
-      console.error("Error during database query:", err);
+      console.error("Database error:", err);
       return res.status(500).send("Internal server error");
     }
 
-    if (results.length > 0) {
-      res.status(200).json({ message: "Login successful", user: results[0] });
-    } else {
-      res.status(401).json({ message: "Invalid email or password" });
+    if (results.length === 0) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
+
+    const user = results[0];
+
+    // Compare provided password with stored hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      // Log failed login attempt (invalid password)
+      const logQuery = `
+      INSERT INTO ${user.user_id}_log_data (log_type, log_message, timestamp) 
+        VALUES (?, ?, NOW())
+      `;
+      const logMessage = `Failed login attempt: Incorrect password for email (${email})`;
+      db.query(logQuery, ["Login Failed", logMessage], (logErr) => {
+        if (logErr) {
+          console.error(
+            "Failed to create log entry for incorrect password:",
+            logErr
+          );
+        } else {
+          // console.log("Log entry created for incorrect password.");
+        }
+      });
+
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.user_id, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "10h" } // Token expiration time
+    );
+
+    // Create log entry in the logs table
+    const logQuery = `
+      INSERT INTO ${user.user_id}_log_data (log_type, log_message, timestamp) 
+      VALUES (?, ?, NOW())
+    `;
+    const logMessage = `ID=${user.user_id}, Name=${user.user_name}, Role=${user.role}`;
+
+    db.query(logQuery, ["Login Detected", logMessage], (logErr, logResults) => {
+      if (logErr) {
+        console.error("Failed to create log entry:", logErr);
+      } else {
+        // console.log("Log entry created successfully.");
+      }
+    });
+
+    // Respond with token and user info
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: { userId: user.user_id, role: user.role, name: user.user_name },
+    });
   });
 });
 
