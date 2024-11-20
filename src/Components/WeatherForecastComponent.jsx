@@ -57,6 +57,7 @@ const WeatherForecastComponent = () => {
   const calculateAverage = (data) =>
     data.reduce((sum, val) => sum + val, 0) / data.length;
 
+  // Hourly data calculation
   const hourlyData = hourly
     ? {
         temperature: {
@@ -79,45 +80,17 @@ const WeatherForecastComponent = () => {
           max: Math.max(...hourly.relative_humidity_2m),
           min: Math.min(...hourly.relative_humidity_2m),
           avg: calculateAverage(hourly.relative_humidity_2m),
+          maxTime: hourly.time[
+            hourly.relative_humidity_2m.indexOf(Math.max(...hourly.relative_humidity_2m))
+          ], // Time when humidity is highest
         },
       }
     : null;
 
-  const dailyData = daily
-    ? {
-        temperature: {
-          max: Math.max(...daily.temperature_2m_max),
-          min: Math.min(...daily.temperature_2m_min),
-          avg: calculateAverage(
-            daily.temperature_2m_max.concat(daily.temperature_2m_min)
-          ),
-        },
-        wind: {
-          max: hourlyData.wind.max,
-          min: hourlyData.wind.min,
-          avg: hourlyData.wind.avg,
-          direction: hourlyData.wind.direction, // No daily wind direction in API
-        },
-        pressure: hourlyData.pressure,
-        humidity: hourlyData.humidity,
-      }
-    : null;
-
-    const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const options = { weekday: "long", day: "numeric", month: "short" };
-    return date.toLocaleDateString("en-US", options);
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
-    const weeklyData = daily
-      ? daily.time.map((date, index) => ({
-          date: formatDate(date),
-          maxTemp: daily.temperature_2m_max[index],
-          minTemp: daily.temperature_2m_min[index],
-          precipitation: daily.precipitation_sum[index] || 0,
-        }))
-      : null;
-
-  const dataToDisplay = viewMode === "hourly" ? hourlyData : dailyData;
 
   return (
     <div className="forecast-container">
@@ -126,47 +99,72 @@ const WeatherForecastComponent = () => {
         <button onClick={() => setViewMode("weekly")}>Weekly Forecast</button>
       </div>
 
-      {dataToDisplay && (
+      {viewMode === "hourly" && hourlyData && (
         <div className="data-display">
-          <h3>{viewMode === "hourly" ? "Hourly" : "Weekly"} Forecast</h3>
+          <h3>Today Forecast</h3>
+          <div>
+            <p>
+              <strong>Max Temperature:</strong> {hourlyData.temperature.max.toFixed(2)}°C
+            </p>
+            <p>
+              <strong>Min Temperature:</strong> {hourlyData.temperature.min.toFixed(2)}°C
+            </p>
+            <p>
+              <strong>Avg Temperature:</strong> {hourlyData.temperature.avg.toFixed(2)}°C
+            </p>
+            <p>
+              <strong>Max Wind Speed:</strong> {hourlyData.wind.max.toFixed(2)} km/h
+            </p>
+            <p>
+              <strong>Min Wind Speed:</strong> {hourlyData.wind.min.toFixed(2)} km/h
+            </p>
+            <p>
+              <strong>Avg Wind Speed:</strong> {hourlyData.wind.avg.toFixed(2)} km/h
+            </p>
+            <p>
+              <strong>Wind Direction:</strong> {hourlyData.wind.direction}°
+            </p>
+            <p>
+              <strong>Avg Pressure:</strong> {hourlyData.pressure.avg.toFixed(2)} hPa
+            </p>
+            <p>
+              <strong>Max Humidity:</strong> {hourlyData.humidity.max.toFixed(2)}%
+            </p>
+            <p>
+              <strong>Min Humidity:</strong> {hourlyData.humidity.min.toFixed(2)}%
+            </p>
+            <p>
+              <strong>Avg Humidity:</strong> {hourlyData.humidity.avg.toFixed(2)}%
+            </p>
+            <p>
+              <strong>Time of Max Humidity:</strong>{" "}
+              {formatTime(hourlyData.humidity.maxTime)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {viewMode === "weekly" && daily && (
+        <div className="data-display">
+          <h3>Weekly Forecast</h3>
           <table>
             <thead>
               <tr>
-                <th>Metric</th>
-                <th>Max</th>
-                <th>Min</th>
-                <th>Avg</th>
+                <th>Date</th>
+                <th>Max Temp (°C)</th>
+                <th>Min Temp (°C)</th>
+                <th>Precipitation (mm)</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Temperature (°C)</td>
-                <td>{dataToDisplay.temperature.max.toFixed(2)}</td>
-                <td>{dataToDisplay.temperature.min.toFixed(2)}</td>
-                <td>{dataToDisplay.temperature.avg.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td>Wind Speed (km/h)</td>
-                <td>{dataToDisplay.wind.max.toFixed(2)}</td>
-                <td>{dataToDisplay.wind.min.toFixed(2)}</td>
-                <td>{dataToDisplay.wind.avg.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td>Wind Direction</td>
-                <td colSpan="3">{dataToDisplay.wind.direction}°</td>
-              </tr>
-              <tr>
-                <td>Pressure (hPa)</td>
-                <td>{dataToDisplay.pressure.max.toFixed(2)}</td>
-                <td>{dataToDisplay.pressure.min.toFixed(2)}</td>
-                <td>{dataToDisplay.pressure.avg.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td>Humidity (%)</td>
-                <td>{dataToDisplay.humidity.max.toFixed(2)}</td>
-                <td>{dataToDisplay.humidity.min.toFixed(2)}</td>
-                <td>{dataToDisplay.humidity.avg.toFixed(2)}</td>
-              </tr>
+              {daily.time.map((date, index) => (
+                <tr key={index}>
+                  <td>{new Date(date).toLocaleDateString()}</td>
+                  <td>{daily.temperature_2m_max[index].toFixed(2)}</td>
+                  <td>{daily.temperature_2m_min[index].toFixed(2)}</td>
+                  <td>{(daily.precipitation_sum[index] || 0).toFixed(2)}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
