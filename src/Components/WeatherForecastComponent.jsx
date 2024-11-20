@@ -1,34 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-
-// Register necessary Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 const WeatherForecastComponent = () => {
   const [forecastData, setForecastData] = useState(null);
   const [error, setError] = useState(null);
-  const [selectedMetric, setSelectedMetric] = useState("temperature");
+  const [viewMode, setViewMode] = useState("hourly"); // "hourly" or "weekly"
 
-  // Coordinates for the location
   const lat = 22.314806706030907;
   const lon = 87.32086776565481;
 
@@ -43,7 +20,7 @@ const WeatherForecastComponent = () => {
               longitude: lon,
               current_weather: true,
               hourly:
-                "temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m",
+                "temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,wind_direction_10m",
               daily: "temperature_2m_max,temperature_2m_min,precipitation_sum",
               forecast_days: 7,
               timezone: "auto",
@@ -65,7 +42,7 @@ const WeatherForecastComponent = () => {
     };
 
     fetchForecastData();
-  }, []); // Run once on mount
+  }, []);
 
   if (error) {
     return <div>{error}</div>;
@@ -77,151 +54,123 @@ const WeatherForecastComponent = () => {
 
   const { hourly, daily } = forecastData;
 
-  // Prepare the data for the graphs
-  const hourlyLabels = hourly?.temperature_2m
-    ? hourly.temperature_2m.slice(0, 24).map((_, index) => `Hour ${index}`)
-    : [];
-  const hourlyTemperatureData = hourly?.temperature_2m || [];
-  const hourlyWindSpeedData = hourly?.wind_speed_10m || [];
-  const hourlyHumidityData = hourly?.relative_humidity_2m || [];
-  const hourlyPressureData = hourly?.pressure_msl || [];
+  const calculateAverage = (data) =>
+    data.reduce((sum, val) => sum + val, 0) / data.length;
 
-  // Daily data for max and min temperatures
-  const dailyLabels = daily?.temperature_2m_max
-    ? daily.temperature_2m_max.map((_, index) => `Day ${index + 1}`)
-    : [];
-  const dailyMaxTemperatureData = daily?.temperature_2m_max || [];
-  const dailyMinTemperatureData = daily?.temperature_2m_min || [];
-
-  // Graph options
-  const options = {
-    responsive: true,
-    plugins: {
-      title: {
-        display: true,
-        text: `Hourly ${
-          selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)
-        }`,
-      },
-      tooltip: {
-        callbacks: {
-          label: (tooltipItem) =>
-            `${tooltipItem.dataset.label}: ${tooltipItem.raw} ${
-              selectedMetric === "temperature"
-                ? "°C"
-                : selectedMetric === "wind_speed"
-                ? "km/h"
-                : selectedMetric === "humidity"
-                ? "%"
-                : "hPa"
-            }`,
+  const hourlyData = hourly
+    ? {
+        temperature: {
+          max: Math.max(...hourly.temperature_2m),
+          min: Math.min(...hourly.temperature_2m),
+          avg: calculateAverage(hourly.temperature_2m),
         },
-      },
-    },
-  };
+        wind: {
+          max: Math.max(...hourly.wind_speed_10m),
+          min: Math.min(...hourly.wind_speed_10m),
+          avg: calculateAverage(hourly.wind_speed_10m),
+          direction: hourly.wind_direction_10m[0], // Simplified, show first value
+        },
+        pressure: {
+          max: Math.max(...hourly.pressure_msl),
+          min: Math.min(...hourly.pressure_msl),
+          avg: calculateAverage(hourly.pressure_msl),
+        },
+        humidity: {
+          max: Math.max(...hourly.relative_humidity_2m),
+          min: Math.min(...hourly.relative_humidity_2m),
+          avg: calculateAverage(hourly.relative_humidity_2m),
+        },
+      }
+    : null;
 
-  // Dynamically change the data based on selected metric
-  const graphData = {
-    temperature: hourlyTemperatureData,
-    wind_speed: hourlyWindSpeedData,
-    humidity: hourlyHumidityData,
-    pressure: hourlyPressureData,
+  const dailyData = daily
+    ? {
+        temperature: {
+          max: Math.max(...daily.temperature_2m_max),
+          min: Math.min(...daily.temperature_2m_min),
+          avg: calculateAverage(
+            daily.temperature_2m_max.concat(daily.temperature_2m_min)
+          ),
+        },
+        wind: {
+          max: hourlyData.wind.max,
+          min: hourlyData.wind.min,
+          avg: hourlyData.wind.avg,
+          direction: hourlyData.wind.direction, // No daily wind direction in API
+        },
+        pressure: hourlyData.pressure,
+        humidity: hourlyData.humidity,
+      }
+    : null;
+
+    const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { weekday: "long", day: "numeric", month: "short" };
+    return date.toLocaleDateString("en-US", options);
   };
+    const weeklyData = daily
+      ? daily.time.map((date, index) => ({
+          date: formatDate(date),
+          maxTemp: daily.temperature_2m_max[index],
+          minTemp: daily.temperature_2m_min[index],
+          precipitation: daily.precipitation_sum[index] || 0,
+        }))
+      : null;
+
+  const dataToDisplay = viewMode === "hourly" ? hourlyData : dailyData;
 
   return (
     <div className="forecast-container">
-      <div className="button-group">
-        {/* Buttons for each weather metric */}
-        <button onClick={() => setSelectedMetric("temperature")}>
-          Temperature
-        </button>
-        <button onClick={() => setSelectedMetric("wind_speed")}>
-          Wind Speed
-        </button>
-        <button onClick={() => setSelectedMetric("humidity")}>Humidity</button>
-        <button onClick={() => setSelectedMetric("pressure")}>Pressure</button>
+      <div className="view-mode-buttons">
+        <button onClick={() => setViewMode("hourly")}>Hourly Forecast</button>
+        <button onClick={() => setViewMode("weekly")}>Weekly Forecast</button>
       </div>
 
-      <div className="graph-container x:max-w-xl w-1/2">
-        {/* Line chart for selected metric */}
-        <Line
-          data={{
-            labels: hourlyLabels,
-            datasets: [
-              {
-                label: `${
-                  selectedMetric.charAt(0).toUpperCase() +
-                  selectedMetric.slice(1)
-                } (${
-                  selectedMetric === "temperature"
-                    ? "°C"
-                    : selectedMetric === "wind_speed"
-                    ? "km/h"
-                    : selectedMetric === "humidity"
-                    ? "%"
-                    : "hPa"
-                })`,
-                data: graphData[selectedMetric],
-                borderColor:
-                  selectedMetric === "temperature"
-                    ? "rgba(75, 192, 192, 1)"
-                    : selectedMetric === "wind_speed"
-                    ? "rgba(255, 159, 64, 1)"
-                    : selectedMetric === "humidity"
-                    ? "rgba(153, 102, 255, 1)"
-                    : "rgba(255, 99, 132, 1)",
-                backgroundColor:
-                  selectedMetric === "temperature"
-                    ? "rgba(75, 192, 192, 0.2)"
-                    : selectedMetric === "wind_speed"
-                    ? "rgba(255, 159, 64, 0.2)"
-                    : selectedMetric === "humidity"
-                    ? "rgba(153, 102, 255, 0.2)"
-                    : "rgba(255, 99, 132, 0.2)",
-                fill: true,
-                tension: 0.4, // Smoother curves
-                borderWidth: 2,
-              },
-            ],
-          }}
-          options={options}
-        />
-      </div>
-
-      <div className="weekly-forecast">
-        <h3>Weekly Forecast</h3>
-        {/* Daily Temperature Chart */}
-        <Line
-          data={{
-            labels: dailyLabels,
-            datasets: [
-              {
-                label: "Max Temperature (°C)",
-                data: dailyMaxTemperatureData,
-                borderColor: "rgba(75, 192, 192, 1)",
-                backgroundColor: "rgba(75, 192, 192, 0.2)",
-                fill: true,
-              },
-              {
-                label: "Min Temperature (°C)",
-                data: dailyMinTemperatureData,
-                borderColor: "rgba(255, 159, 64, 1)",
-                backgroundColor: "rgba(255, 159, 64, 0.2)",
-                fill: true,
-              },
-            ],
-          }}
-          options={{
-            responsive: true,
-            plugins: {
-              title: {
-                display: true,
-                text: "Daily Temperature",
-              },
-            },
-          }}
-        />
-      </div>
+      {dataToDisplay && (
+        <div className="data-display">
+          <h3>{viewMode === "hourly" ? "Hourly" : "Weekly"} Forecast</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Max</th>
+                <th>Min</th>
+                <th>Avg</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Temperature (°C)</td>
+                <td>{dataToDisplay.temperature.max.toFixed(2)}</td>
+                <td>{dataToDisplay.temperature.min.toFixed(2)}</td>
+                <td>{dataToDisplay.temperature.avg.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td>Wind Speed (km/h)</td>
+                <td>{dataToDisplay.wind.max.toFixed(2)}</td>
+                <td>{dataToDisplay.wind.min.toFixed(2)}</td>
+                <td>{dataToDisplay.wind.avg.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td>Wind Direction</td>
+                <td colSpan="3">{dataToDisplay.wind.direction}°</td>
+              </tr>
+              <tr>
+                <td>Pressure (hPa)</td>
+                <td>{dataToDisplay.pressure.max.toFixed(2)}</td>
+                <td>{dataToDisplay.pressure.min.toFixed(2)}</td>
+                <td>{dataToDisplay.pressure.avg.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td>Humidity (%)</td>
+                <td>{dataToDisplay.humidity.max.toFixed(2)}</td>
+                <td>{dataToDisplay.humidity.min.toFixed(2)}</td>
+                <td>{dataToDisplay.humidity.avg.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

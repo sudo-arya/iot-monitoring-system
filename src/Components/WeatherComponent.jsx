@@ -6,8 +6,8 @@ const WeatherComponent = () => {
   const [error, setError] = useState(null);
 
   // Coordinates for the location
-  const lat = 60.515802413267174;
-  const lon = 5.572510170378234;
+  const lat = 22.316718169420145;
+  const lon = 87.317671736126;
 
   useEffect(() => {
     const fetchWeatherData = async () => {
