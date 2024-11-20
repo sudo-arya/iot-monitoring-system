@@ -39,7 +39,7 @@ const WeatherComponent = () => {
           }
         );
 
-        console.log("Full Response:", response.data); // Log response for debugging
+        // console.log("Full Response:", response.data); // Log response for debugging
 
         // Checking if data is available and setting it
         if (response.data && response.data.daily && response.data.hourly) {
