@@ -43,6 +43,7 @@ const WeatherComponent = () => {
 
         // Checking if data is available and setting it
         if (response.data && response.data.daily && response.data.hourly) {
+          // eslint-disable-next-line
           const { daily, hourly, current_weather } = response.data;
           const currentHour = new Date().getHours();
           setWeatherData({
