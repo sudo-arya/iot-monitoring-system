@@ -10,7 +10,7 @@ import {
 import "./index.css";
 import Home from "./Components/Home";
 import Navbar from "./Components/Navbar";
-import Footer from "./Components/Footer";
+// import Footer from "./Components/Footer";
 import Seo from "./Components/Seo";
 import Signin from "./Components/Signin";
 import ProtectedRoute from "./Components/ProtectedRoute";
@@ -46,7 +46,7 @@ function App() {
         <Navbar />
         <Seo title="Home" description="" keywords="" />
         <ScrollToTop />
-        <div className="flex mx-auto">
+        <div className="flex mx-auto ">
           
           <Routes>
             <Route path="/" element={<Home />} />
@@ -133,7 +133,7 @@ function App() {
             />
           </Routes>
         </div>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     </Router>
   );

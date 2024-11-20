@@ -4,8 +4,11 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <div>
-      <div className="w-full bg-gray-700 text-center text-xl text-white p-4" > Footer</div>
+    <div className="w-full z-50">
+      <div className="w-full bg-gray-900 text-center text-xl text-white p-4 z-50 ">
+        {" "}
+        Footer
+      </div>
     </div>
   );
 };

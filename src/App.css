@@ -50,3 +50,35 @@
   text-align: center;
   z-index: 1000;
 } */
+
+.weather-container {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background: #f4f4f4;
+  border-radius: 8px;
+}
+
+.current-weather h2, .hourly-forecast h3, .weekly-forecast h3 {
+  font-size: 1.5rem;
+  color: #333;
+}
+
+p {
+  font-size: 1rem;
+  color: #555;
+}
+
+strong {
+  font-weight: bold;
+}
+
+.forecast-container {
+  margin-top: 20px;
+}
+
+.hourly-forecast div, .weekly-forecast div {
+  margin-bottom: 10px;
+}
+/* .h-100 {
+    height:;
+} */

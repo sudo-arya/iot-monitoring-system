@@ -68,8 +68,14 @@ const SignIn = () => {
         }
       }
     } catch (error) {
-      if (error.response && error.response.status === 401) {
-        setErrorMessage("Invalid email or password");
+      if (error.response) {
+        if (error.response.status === 401) {
+          setErrorMessage("Invalid email or password");
+        } else if (error.response.status === 403) {
+          setErrorMessage("Login not allowed for this user");
+        } else {
+          setErrorMessage("Something went wrong. Please try again.");
+        }
       } else {
         setErrorMessage("Something went wrong. Please try again.");
       }
@@ -77,6 +83,7 @@ const SignIn = () => {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className=" w-full flex flex-col justify-center items-center relative bg-gray-100">

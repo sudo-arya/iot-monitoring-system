@@ -65,23 +65,43 @@ app.post("/login", (req, res) => {
 
     const user = results[0];
 
+    // Check if the user is allowed to log in
+    if (user.status !== "allowed") {
+      // Log failed login attempt (status not allowed)
+      const logQuery = `
+      INSERT INTO log_data (log_type, log_message, timestamp) 
+      VALUES (?, ?, NOW())
+      `;
+      const logMessage = `Login not allowed for email (${email}), User ID: ${user.user_id}`;
+      db.query(logQuery, ["Login Blocked", logMessage], (logErr) => {
+        if (logErr) {
+          console.error(
+            "Failed to create log entry for blocked login attempt:",
+            logErr
+          );
+        }
+      });
+
+      return res
+        .status(403)
+        .json({ message: "Login not allowed for this user" });
+    }
+
     // Compare provided password with stored hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       // Log failed login attempt (invalid password)
       const logQuery = `
-      INSERT INTO ${user.user_id}_log_data (log_type, log_message, timestamp) 
-        VALUES (?, ?, NOW())
+      INSERT INTO log_data (log_type, log_message, timestamp) 
+      VALUES (?, ?, NOW())
       `;
-      const logMessage = `Failed login attempt: Incorrect password for email (${email})`;
+      const logMessage = `Failed login attempt: Incorrect password for email (${email}), User ID: ${user.user_id}`;
       db.query(logQuery, ["Login Failed", logMessage], (logErr) => {
         if (logErr) {
           console.error(
             "Failed to create log entry for incorrect password:",
             logErr
           );
-        } else {
-          // console.log("Log entry created for incorrect password.");
         }
       });
 
@@ -97,16 +117,14 @@ app.post("/login", (req, res) => {
 
     // Create log entry in the logs table
     const logQuery = `
-      INSERT INTO ${user.user_id}_log_data (log_type, log_message, timestamp) 
+      INSERT INTO log_data (log_type, log_message, timestamp) 
       VALUES (?, ?, NOW())
     `;
-    const logMessage = `ID=${user.user_id}, Name=${user.user_name}, Role=${user.role}`;
+    const logMessage = `User logged in: ID=${user.user_id}, Name=${user.user_name}, Role=${user.role}`;
 
     db.query(logQuery, ["Login Detected", logMessage], (logErr, logResults) => {
       if (logErr) {
         console.error("Failed to create log entry:", logErr);
-      } else {
-        // console.log("Log entry created successfully.");
       }
     });
 
@@ -118,6 +136,7 @@ app.post("/login", (req, res) => {
     });
   });
 });
+
 
 
 

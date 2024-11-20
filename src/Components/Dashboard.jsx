@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import WeatherComponent from "./WeatherComponent";
+import WeatherForecastComponent from "./WeatherForecastComponent";
 
 
 const Dashboard = () => {
@@ -34,9 +36,13 @@ const Dashboard = () => {
   console.log("User ID:", userId);
 
   return (
-    <div className=" w-full min-h-screen flex bg-gray-100">
-      <Sidebar />
-      <div className="my-10 absolute mx-20">
+    <div className="w-full h-full flex  ">
+      <div className="w-full h-full flex">
+        <Sidebar />
+      </div>
+      {/* Ensure Sidebar takes full height */}
+      {/* Content section */}
+      <div className="absolute w-full h-full my-20 mx-20 flex-grow flex-col ">
         {toastMessage && (
           <div
             className={`toast-top ${toastColor} p-2 px-10 my-20 fixed text-xl rounded-xl xl:right-6 xl:top-2 top-0 right-2 text-green-700 border-green-300 border`}
@@ -50,11 +56,15 @@ const Dashboard = () => {
             <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
           </div>
         )}
-        <h1> Welcome to Dashboard</h1>
+
+        <h1>Welcome to Dashboard</h1>
         {/* <h2>{userId}</h2> */}
+        <WeatherComponent />
+        <WeatherForecastComponent />
       </div>
     </div>
   );
+
 };
 
 export default Dashboard;
