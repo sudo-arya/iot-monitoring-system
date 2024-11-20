@@ -46,7 +46,7 @@ function App() {
         <Navbar />
         <Seo title="Home" description="" keywords="" />
         <ScrollToTop />
-        <div className="flex mx-auto ">
+        <div className="flex mx-auto">
           
           <Routes>
             <Route path="/" element={<Home />} />

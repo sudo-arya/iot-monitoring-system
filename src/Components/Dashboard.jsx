@@ -42,7 +42,7 @@ const Dashboard = () => {
       </div>
       {/* Ensure Sidebar takes full height */}
       {/* Content section */}
-      <div className="absolute w-full h-full my-20 mx-20 flex-grow flex-col">
+      <div className="absolute h-full my-20 mx-20 flex-grow flex-col">
         {toastMessage && (
           <div
             className={`toast-top ${toastColor} p-2 px-10 my-20 fixed text-xl rounded-xl xl:right-6 xl:top-2 top-0 right-2 text-green-700 border-green-300 border`}

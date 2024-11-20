@@ -58,34 +58,38 @@ const WeatherForecastComponent = () => {
     data.reduce((sum, val) => sum + val, 0) / data.length;
 
   // Hourly data calculation
-  const hourlyData = hourly
-    ? {
-        temperature: {
-          max: Math.max(...hourly.temperature_2m),
-          min: Math.min(...hourly.temperature_2m),
-          avg: calculateAverage(hourly.temperature_2m),
-        },
-        wind: {
-          max: Math.max(...hourly.wind_speed_10m),
-          min: Math.min(...hourly.wind_speed_10m),
-          avg: calculateAverage(hourly.wind_speed_10m),
-          direction: hourly.wind_direction_10m[0], // Simplified, show first value
-        },
-        pressure: {
-          max: Math.max(...hourly.pressure_msl),
-          min: Math.min(...hourly.pressure_msl),
-          avg: calculateAverage(hourly.pressure_msl),
-        },
-        humidity: {
-          max: Math.max(...hourly.relative_humidity_2m),
-          min: Math.min(...hourly.relative_humidity_2m),
-          avg: calculateAverage(hourly.relative_humidity_2m),
-          maxTime: hourly.time[
-            hourly.relative_humidity_2m.indexOf(Math.max(...hourly.relative_humidity_2m))
-          ], // Time when humidity is highest
-        },
-      }
-    : null;
+  // Hourly data calculation for today
+  const todayDate = new Date().toLocaleDateString();
+  const todayHourlyData = hourly.time
+    ? hourly.time.filter((time, index) => new Date(time).toLocaleDateString() === todayDate)
+    : [];
+
+  const todayHourly = {
+    temperature: {
+      max: Math.max(...todayHourlyData.map((_, index) => hourly.temperature_2m[index])),
+      min: Math.min(...todayHourlyData.map((_, index) => hourly.temperature_2m[index])),
+      avg: calculateAverage(todayHourlyData.map((_, index) => hourly.temperature_2m[index])),
+    },
+    wind: {
+      max: Math.max(...todayHourlyData.map((_, index) => hourly.wind_speed_10m[index])),
+      min: Math.min(...todayHourlyData.map((_, index) => hourly.wind_speed_10m[index])),
+      avg: calculateAverage(todayHourlyData.map((_, index) => hourly.wind_speed_10m[index])),
+      direction: hourly.wind_direction_10m[0], // Simplified, show first value
+    },
+    pressure: {
+      max: Math.max(...todayHourlyData.map((_, index) => hourly.pressure_msl[index])),
+      min: Math.min(...todayHourlyData.map((_, index) => hourly.pressure_msl[index])),
+      avg: calculateAverage(todayHourlyData.map((_, index) => hourly.pressure_msl[index])),
+    },
+    humidity: {
+      max: Math.max(...todayHourlyData.map((_, index) => hourly.relative_humidity_2m[index])),
+      min: Math.min(...todayHourlyData.map((_, index) => hourly.relative_humidity_2m[index])),
+      avg: calculateAverage(todayHourlyData.map((_, index) => hourly.relative_humidity_2m[index])),
+      maxTime: hourly.time[
+        hourly.relative_humidity_2m.indexOf(Math.max(...todayHourlyData.map((_, index) => hourly.relative_humidity_2m[index])))
+      ], // Time when humidity is highest
+    },
+  };
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
@@ -99,46 +103,56 @@ const WeatherForecastComponent = () => {
         <button onClick={() => setViewMode("weekly")}>Weekly Forecast</button>
       </div>
 
-      {viewMode === "hourly" && hourlyData && (
+      {viewMode === "hourly" && todayHourly && (
         <div className="data-display">
           <h3>Today Forecast</h3>
           <div>
             <p>
-              <strong>Max Temperature:</strong> {hourlyData.temperature.max.toFixed(2)}°C
+              <strong>Max Temperature:</strong>{" "}
+              {todayHourly.temperature.max.toFixed(2)}°C
             </p>
             <p>
-              <strong>Min Temperature:</strong> {hourlyData.temperature.min.toFixed(2)}°C
+              <strong>Min Temperature:</strong>{" "}
+              {todayHourly.temperature.min.toFixed(2)}°C
             </p>
             <p>
-              <strong>Avg Temperature:</strong> {hourlyData.temperature.avg.toFixed(2)}°C
+              <strong>Avg Temperature:</strong>{" "}
+              {todayHourly.temperature.avg.toFixed(2)}°C
             </p>
             <p>
-              <strong>Max Wind Speed:</strong> {hourlyData.wind.max.toFixed(2)} km/h
+              <strong>Max Wind Speed:</strong> {todayHourly.wind.max.toFixed(2)}{" "}
+              km/h
             </p>
             <p>
-              <strong>Min Wind Speed:</strong> {hourlyData.wind.min.toFixed(2)} km/h
+              <strong>Min Wind Speed:</strong> {todayHourly.wind.min.toFixed(2)}{" "}
+              km/h
             </p>
             <p>
-              <strong>Avg Wind Speed:</strong> {hourlyData.wind.avg.toFixed(2)} km/h
+              <strong>Avg Wind Speed:</strong> {todayHourly.wind.avg.toFixed(2)}{" "}
+              km/h
             </p>
             <p>
-              <strong>Wind Direction:</strong> {hourlyData.wind.direction}°
+              <strong>Wind Direction:</strong> {todayHourly.wind.direction}°
             </p>
             <p>
-              <strong>Avg Pressure:</strong> {hourlyData.pressure.avg.toFixed(2)} hPa
+              <strong>Avg Pressure:</strong>{" "}
+              {todayHourly.pressure.avg.toFixed(2)} hPa
             </p>
             <p>
-              <strong>Max Humidity:</strong> {hourlyData.humidity.max.toFixed(2)}%
+              <strong>Max Humidity:</strong>{" "}
+              {todayHourly.humidity.max.toFixed(2)}%
             </p>
             <p>
-              <strong>Min Humidity:</strong> {hourlyData.humidity.min.toFixed(2)}%
+              <strong>Min Humidity:</strong>{" "}
+              {todayHourly.humidity.min.toFixed(2)}%
             </p>
             <p>
-              <strong>Avg Humidity:</strong> {hourlyData.humidity.avg.toFixed(2)}%
+              <strong>Avg Humidity:</strong>{" "}
+              {todayHourly.humidity.avg.toFixed(2)}%
             </p>
             <p>
               <strong>Time of Max Humidity:</strong>{" "}
-              {formatTime(hourlyData.humidity.maxTime)}
+              {formatTime(todayHourly.humidity.maxTime)}
             </p>
           </div>
         </div>
