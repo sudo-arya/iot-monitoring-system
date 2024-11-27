@@ -61,33 +61,66 @@ const WeatherForecastComponent = () => {
   // Hourly data calculation for today
   const todayDate = new Date().toLocaleDateString();
   const todayHourlyData = hourly.time
-    ? hourly.time.filter((time, index) => new Date(time).toLocaleDateString() === todayDate)
+    ? hourly.time.filter(
+        (time, index) => new Date(time).toLocaleDateString() === todayDate
+      )
     : [];
 
   const todayHourly = {
     temperature: {
-      max: Math.max(...todayHourlyData.map((_, index) => hourly.temperature_2m[index])),
-      min: Math.min(...todayHourlyData.map((_, index) => hourly.temperature_2m[index])),
-      avg: calculateAverage(todayHourlyData.map((_, index) => hourly.temperature_2m[index])),
+      max: Math.max(
+        ...todayHourlyData.map((_, index) => hourly.temperature_2m[index])
+      ),
+      min: Math.min(
+        ...todayHourlyData.map((_, index) => hourly.temperature_2m[index])
+      ),
+      avg: calculateAverage(
+        todayHourlyData.map((_, index) => hourly.temperature_2m[index])
+      ),
     },
     wind: {
-      max: Math.max(...todayHourlyData.map((_, index) => hourly.wind_speed_10m[index])),
-      min: Math.min(...todayHourlyData.map((_, index) => hourly.wind_speed_10m[index])),
-      avg: calculateAverage(todayHourlyData.map((_, index) => hourly.wind_speed_10m[index])),
+      max: Math.max(
+        ...todayHourlyData.map((_, index) => hourly.wind_speed_10m[index])
+      ),
+      min: Math.min(
+        ...todayHourlyData.map((_, index) => hourly.wind_speed_10m[index])
+      ),
+      avg: calculateAverage(
+        todayHourlyData.map((_, index) => hourly.wind_speed_10m[index])
+      ),
       direction: hourly.wind_direction_10m[0], // Simplified, show first value
     },
     pressure: {
-      max: Math.max(...todayHourlyData.map((_, index) => hourly.pressure_msl[index])),
-      min: Math.min(...todayHourlyData.map((_, index) => hourly.pressure_msl[index])),
-      avg: calculateAverage(todayHourlyData.map((_, index) => hourly.pressure_msl[index])),
+      max: Math.max(
+        ...todayHourlyData.map((_, index) => hourly.pressure_msl[index])
+      ),
+      min: Math.min(
+        ...todayHourlyData.map((_, index) => hourly.pressure_msl[index])
+      ),
+      avg: calculateAverage(
+        todayHourlyData.map((_, index) => hourly.pressure_msl[index])
+      ),
     },
     humidity: {
-      max: Math.max(...todayHourlyData.map((_, index) => hourly.relative_humidity_2m[index])),
-      min: Math.min(...todayHourlyData.map((_, index) => hourly.relative_humidity_2m[index])),
-      avg: calculateAverage(todayHourlyData.map((_, index) => hourly.relative_humidity_2m[index])),
-      maxTime: hourly.time[
-        hourly.relative_humidity_2m.indexOf(Math.max(...todayHourlyData.map((_, index) => hourly.relative_humidity_2m[index])))
-      ], // Time when humidity is highest
+      max: Math.max(
+        ...todayHourlyData.map((_, index) => hourly.relative_humidity_2m[index])
+      ),
+      min: Math.min(
+        ...todayHourlyData.map((_, index) => hourly.relative_humidity_2m[index])
+      ),
+      avg: calculateAverage(
+        todayHourlyData.map((_, index) => hourly.relative_humidity_2m[index])
+      ),
+      maxTime:
+        hourly.time[
+          hourly.relative_humidity_2m.indexOf(
+            Math.max(
+              ...todayHourlyData.map(
+                (_, index) => hourly.relative_humidity_2m[index]
+              )
+            )
+          )
+        ], // Time when humidity is highest
     },
   };
 
@@ -97,90 +130,163 @@ const WeatherForecastComponent = () => {
   };
 
   return (
-    <div className="forecast-container">
-      <div className="view-mode-buttons">
-        <button onClick={() => setViewMode("hourly")}>Hourly Forecast</button>
-        <button onClick={() => setViewMode("weekly")}>Weekly Forecast</button>
+    <div className="xl:w-full w-[calc(100vw-6rem)] bg-white px-6 xl:px-0 py-4 text-gray-700">
+      <div className="flex xl:text-center xl:justify-center items-start justify-start flex-row xl:flex-row text-white font-semibold text-base">
+        <div
+          className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
+            viewMode === "hourly"
+              ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+              : "bg-gray-400"
+          }`}
+          onClick={() => setViewMode("hourly")}
+        >
+          <button>Today's Forecast</button>
+        </div>
+        <div
+          className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
+            viewMode === "weekly"
+              ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+              : "bg-gray-400"
+          }`}
+          onClick={() => setViewMode("weekly")}
+        >
+          <button>Weekly Forecast</button>
+        </div>
       </div>
 
       {viewMode === "hourly" && todayHourly && (
-        <div className="data-display">
-          <h3>Today Forecast</h3>
-          <div>
-            <p>
-              <strong>Max Temperature:</strong>{" "}
-              {todayHourly.temperature.max.toFixed(2)}°C
-            </p>
-            <p>
-              <strong>Min Temperature:</strong>{" "}
-              {todayHourly.temperature.min.toFixed(2)}°C
-            </p>
-            <p>
-              <strong>Avg Temperature:</strong>{" "}
-              {todayHourly.temperature.avg.toFixed(2)}°C
-            </p>
-            <p>
-              <strong>Max Wind Speed:</strong> {todayHourly.wind.max.toFixed(2)}{" "}
-              km/h
-            </p>
-            <p>
-              <strong>Min Wind Speed:</strong> {todayHourly.wind.min.toFixed(2)}{" "}
-              km/h
-            </p>
-            <p>
-              <strong>Avg Wind Speed:</strong> {todayHourly.wind.avg.toFixed(2)}{" "}
-              km/h
-            </p>
-            <p>
-              <strong>Wind Direction:</strong> {todayHourly.wind.direction}°
-            </p>
-            <p>
-              <strong>Avg Pressure:</strong>{" "}
-              {todayHourly.pressure.avg.toFixed(2)} hPa
-            </p>
-            <p>
-              <strong>Max Humidity:</strong>{" "}
-              {todayHourly.humidity.max.toFixed(2)}%
-            </p>
-            <p>
-              <strong>Min Humidity:</strong>{" "}
-              {todayHourly.humidity.min.toFixed(2)}%
-            </p>
-            <p>
-              <strong>Avg Humidity:</strong>{" "}
-              {todayHourly.humidity.avg.toFixed(2)}%
-            </p>
-            <p>
-              <strong>Time of Max Humidity:</strong>{" "}
-              {formatTime(todayHourly.humidity.maxTime)}
-            </p>
+        <div className="data-display mt-4">
+          {/* Responsive and visually appealing table container */}
+          <div className="overflow-x-auto shadow-lg rounded-lg border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 ">
+            <table className="min-w-full divide-y divide-gray-200 bg-white">
+              <thead className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                    Parameter
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Min
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Avg
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                    Max
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                <tr className="hover:bg-gray-100">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Temperature (°C)
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.temperature.min.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.temperature.avg.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.temperature.max.toFixed(2)}
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-100">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Wind Speed (km/h)
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.wind.min.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.wind.avg.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.wind.max.toFixed(2)}
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-100">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Pressure (hPa)
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.pressure.min.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.pressure.avg.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.pressure.max.toFixed(2)}
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-100">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Humidity (%)
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.humidity.min.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.humidity.avg.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-700">
+                    {todayHourly.humidity.max.toFixed(2)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+          <p className="mt-4 text-center text-sm font-medium text-gray-600">
+            <strong>Time of Max Humidity:</strong>{" "}
+            {formatTime(todayHourly.humidity.maxTime)}
+          </p>
         </div>
       )}
 
       {viewMode === "weekly" && daily && (
-        <div className="data-display">
-          <h3>Weekly Forecast</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Max Temp (°C)</th>
-                <th>Min Temp (°C)</th>
-                <th>Precipitation (mm)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {daily.time.map((date, index) => (
-                <tr key={index}>
-                  <td>{new Date(date).toLocaleDateString()}</td>
-                  <td>{daily.temperature_2m_max[index].toFixed(2)}</td>
-                  <td>{daily.temperature_2m_min[index].toFixed(2)}</td>
-                  <td>{(daily.precipitation_sum[index] || 0).toFixed(2)}</td>
+        <div className="data-display mt-4">
+          {/* Compact Weekly Forecast Table */}
+          <div className="overflow-x-auto shadow-md rounded-lg border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 ">
+            <table className="min-w-full divide-y divide-gray-200 bg-white">
+              <thead className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wider">
+                    Max Temp (°C)
+                  </th>
+                  <th className="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wider">
+                    Min Temp (°C)
+                  </th>
+                  <th className="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wider">
+                    Precipitation (mm)
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {daily.time.map((date, index) => (
+                  <tr key={index} className="hover:bg-gray-100">
+                    <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-800">
+                      {new Date(date).toLocaleDateString("en-GB", {
+                        weekday: "short",
+                        day: "2-digit",
+                        month: "short",
+                      })}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap text-center text-sm text-gray-600">
+                      {daily.temperature_2m_max[index].toFixed(2)}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap text-center text-sm text-gray-600">
+                      {daily.temperature_2m_min[index].toFixed(2)}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap text-center text-sm text-gray-600">
+                      {(daily.precipitation_sum[index] || 0).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

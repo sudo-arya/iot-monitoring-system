@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import WeatherComponent from "./WeatherComponent";
 import WeatherForecastComponent from "./WeatherForecastComponent";
+import PiGraph from "./PiGraph";
 
 
 const Dashboard = () => {
@@ -42,7 +43,7 @@ const Dashboard = () => {
       </div>
       {/* Ensure Sidebar takes full height */}
       {/* Content section */}
-      <div className="absolute h-full my-20 mx-20 flex-grow flex-col">
+      <div className="absolute h-full my-20 mx-20 flex xl:flex-row flex-col">
         {toastMessage && (
           <div
             className={`toast-top ${toastColor} p-2 px-10 my-20 fixed text-xl rounded-xl xl:right-6 xl:top-2 top-0 right-2 text-green-700 border-green-300 border`}
@@ -57,16 +58,23 @@ const Dashboard = () => {
           </div>
         )}
 
-        <h1>Welcome to Dashboard</h1>
+        {/* <h1>Welcome to Dashboard</h1> */}
         {/* <h2>{userId}</h2> */}
-        <WeatherComponent />
-        <div className="graph-container overflow-x-auto my-4">
-          {/* Wrap the graph component in a div with limited width and scrollable overflow */}
+        <div>
+          <div className="my-2">
+            <WeatherComponent />
+          </div>
 
-          <WeatherForecastComponent />
+          <div className=" my-2">
+            {/* overflow-x-auto */}
+            {/* Wrap the graph component in a div with limited width and scrollable overflow */}
+
+            <WeatherForecastComponent />
+          </div>
+
+          <div className="h-40 xl:visible hidden">&nbsp;</div>
         </div>
-
-        <div className="h-40">&nbsp;</div>
+        <div className="my-2 xl:mx-8"><PiGraph/></div>
       </div>
     </div>
   );

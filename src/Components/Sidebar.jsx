@@ -119,6 +119,7 @@ const Sidebar = () => {
           title="Data Logging & Historical Analysis"
           isExpanded={isExpanded}
           directTo="/logging"
+          getNavItemClass={getNavItemClass}
         />
         <SidebarButton
           icon={<FaBell size={24} />}

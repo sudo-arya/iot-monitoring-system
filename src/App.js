@@ -1,5 +1,3 @@
-// import logo from './logo.svg';
-
 import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -10,7 +8,7 @@ import {
 import "./index.css";
 import Home from "./Components/Home";
 import Navbar from "./Components/Navbar";
-// import Footer from "./Components/Footer";
+import Footer from "./Components/Footer";
 import Seo from "./Components/Seo";
 import Signin from "./Components/Signin";
 import ProtectedRoute from "./Components/ProtectedRoute";
@@ -25,116 +23,126 @@ import Alert from "./Components/Alert";
 import Control from "./Components/Control";
 import Support from "./Components/Support";
 
+import "./App.css";
 
-import './App.css';
+function ScrollToTop() {
+  const { pathname } = useLocation();
 
-function App() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
-  function ScrollToTop() {
-    const { pathname } = useLocation();
+  return null;
+}
 
-    useEffect(() => {
-      window.scrollTo(0, 0);
-    }, [pathname]);
+function AppContent() {
+  const location = useLocation();
 
-    return null;
-  }
+  // Check if the current route is "/" (home) or "/signin" (login)
+  const isFooterVisible =
+    location.pathname === "/" || location.pathname === "/signin";
 
   return (
-    <Router>
-      <div className="">
-        <Navbar />
-        <Seo title="Home" description="" keywords="" />
-        <ScrollToTop />
-        <div className="flex mx-auto">
-          
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/signin" element={<Signin />} />
-            <Route
-              path="/admin-dashboard"
-              element={
-                <ProtectedRoute role="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute role="user">
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/irrigation"
-              element={
-                <ProtectedRoute role="user">
-                  <Irrigation />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/analysis"
-              element={
-                <ProtectedRoute role="user">
-                  <Analysis />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/pest"
-              element={
-                <ProtectedRoute role="user">
-                  <Pest />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/management"
-              element={
-                <ProtectedRoute role="user">
-                  <Management />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/logging"
-              element={
-                <ProtectedRoute role="user">
-                  <Logging />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/alert"
-              element={
-                <ProtectedRoute role="user">
-                  <Alert />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/control"
-              element={
-                <ProtectedRoute role="user">
-                  <Control />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/support"
-              element={
-                <ProtectedRoute role="user">
-                  <Support />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </div>
-        {/* <Footer /> */}
+    <div>
+      <Navbar />
+      <Seo title="Home" description="" keywords="" />
+      <ScrollToTop />
+      <div className="flex mx-auto">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/signin" element={<Signin />} />
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute role="user">
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/irrigation"
+            element={
+              <ProtectedRoute role="user">
+                <Irrigation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analysis"
+            element={
+              <ProtectedRoute role="user">
+                <Analysis />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pest"
+            element={
+              <ProtectedRoute role="user">
+                <Pest />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/management"
+            element={
+              <ProtectedRoute role="user">
+                <Management />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/logging"
+            element={
+              <ProtectedRoute role="user">
+                <Logging />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/alert"
+            element={
+              <ProtectedRoute role="user">
+                <Alert />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/control"
+            element={
+              <ProtectedRoute role="user">
+                <Control />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/support"
+            element={
+              <ProtectedRoute role="user">
+                <Support />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
       </div>
+      {/* Render Footer only on Home or Signin pages */}
+      {isFooterVisible && <Footer />}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }
