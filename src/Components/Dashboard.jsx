@@ -105,7 +105,7 @@ const Dashboard = () => {
         <div className="my-2 xl:mx-8">
           <div className=" relative">
             {/* White Div that will overlap on the MapComponent */}
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white p-3 underline shadow-lg rounded-md text-center text-xl font-semibold text-gray-700 z-20">
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white p-3 underline shadow-lg rounded-md text-center text-sm xl:text-xl font-semibold text-gray-700 z-20">
               Select Farm Area
             </div>
             {/* MapComponent below the overlapping white div */}
