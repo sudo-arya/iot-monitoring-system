@@ -115,39 +115,47 @@ app.post("/login", (req, res) => {
       { expiresIn: "10h" } // Token expiration time
     );
 
-// const query = `SELECT latitude, longitude FROM ${user.userId}_pi_table`;
-// db.query(query, (err, results) => {
-//   if (err) {
-//     console.error("Error fetching location data:", err);
-//     return res.status(500).json({ message: "Error fetching location data" });
-//   }
+    const locationQuery = `SELECT pi_id, pi_location, pi_status, latitude, longitude FROM ${user.user_id}_pi_table`;
+    db.query(locationQuery, (locErr, locResults) => {
+      if (locErr) {
+        console.error("Location query error:", locErr);
+        return res
+          .status(500)
+          .json({ message: "Error fetching location data" });
+      }
 
-//   // Map results into a format suitable for your frontend
-//   const locationData = results.map((row) => ({
-//     latitude: row.latitude,
-//     longitude: row.longitude,
-//   }));
-// });
-    
-    // Create log entry in the logs table
-    const logQuery = `
+      const locationData = locResults.map((row) => ({
+        piId:row.pi_id,
+        piLocation:row.pi_location,
+        piStatus:row.pi_status,
+        latitude: row.latitude,
+        longitude: row.longitude,
+      }));
+      console.log(locationData);
+      // Create log entry in the logs table
+      const logQuery = `
       INSERT INTO log_data (log_type, log_message, timestamp) 
       VALUES (?, ?, NOW())
     `;
-    const logMessage = `User logged in: ID=${user.user_id}, Name=${user.user_name}, Role=${user.role}`;
+      const logMessage = `User logged in: ID=${user.user_id}, Name=${user.user_name}, Role=${user.role}`;
 
-    db.query(logQuery, ["Login Detected", logMessage], (logErr, logResults) => {
-      if (logErr) {
-        console.error("Failed to create log entry:", logErr);
-      }
-    });
+      db.query(
+        logQuery,
+        ["Login Detected", logMessage],
+        (logErr, logResults) => {
+          if (logErr) {
+            console.error("Failed to create log entry:", logErr);
+          }
+        }
+      );
 
-    // Respond with token and user info
-    res.status(200).json({
-      message: "Login successful",
-      token,
-      user: { userId: user.user_id, role: user.role, name: user.user_name },
-      // locations: locationData, // Add location data here
+      // Respond with token and user info
+      res.status(200).json({
+        message: "Login successful",
+        token,
+        user: { userId: user.user_id, role: user.role, name: user.user_name },
+        locations: locationData,
+      });
     });
   });
 });

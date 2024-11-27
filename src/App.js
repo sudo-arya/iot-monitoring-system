@@ -43,6 +43,7 @@ function AppContent() {
     location.pathname === "/" || location.pathname === "/signin";
 
   return (
+    
     <div>
       <Navbar />
       <Seo title="Home" description="" keywords="" />

@@ -1,48 +1,77 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const WeatherForecastComponent = () => {
+const WeatherForecastComponent = ({ locations }) => {
   const [forecastData, setForecastData] = useState(null);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState("hourly"); // "hourly" or "weekly"
+  const [firstLat, setFirstLat] = useState(null);
+  const [firstLong, setFirstLong] = useState(null);
+ useEffect(() => {
+   if (locations?.length > 0) {
+     const { latitude, longitude } = locations[0];
+     if (latitude && longitude) {
+       setFirstLat(latitude);
+       setFirstLong(longitude);
+     } else {
+       console.error("Latitude or longitude is missing in the first location.");
+     }
+   } else {
+     console.warn("No locations provided");
+   }
+ }, [locations]);
+  // const lat = 22.314806706030907;
+  // const lon = 87.32086776565481;
+  console.log("Locations:", locations);
 
-  const lat = 22.314806706030907;
-  const lon = 87.32086776565481;
+  // const lat = firstLat;
+  // const lon = firstLong;
+  //   31.1350486585548
+  // -96.9723425856168
+  // console.log(typeof lat);
 
-  useEffect(() => {
-    const fetchForecastData = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.open-meteo.com/v1/forecast",
-          {
-            params: {
-              latitude: lat,
-              longitude: lon,
-              current_weather: true,
-              hourly:
-                "temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,wind_direction_10m",
-              daily: "temperature_2m_max,temperature_2m_min,precipitation_sum",
-              forecast_days: 7,
-              timezone: "auto",
-              temperature_unit: "celsius",
-              wind_speed_unit: "kmh",
-            },
-          }
-        );
+ useEffect(() => {
+   const fetchForecastData = async () => {
+     if (!firstLat || !firstLong) {
+       setError("Latitude and longitude are not available");
+       return;
+     }
 
-        if (response.data) {
-          setForecastData(response.data);
-        } else {
-          setError("Unable to fetch forecast data");
-        }
-      } catch (err) {
-        setError("Error fetching forecast data");
-        console.error(err);
-      }
-    };
+     try {
+       const response = await axios.get(
+         "https://api.open-meteo.com/v1/forecast",
+         {
+           params: {
+             latitude: firstLat,
+             longitude: firstLong,
+             current_weather: true,
+             hourly:
+               "temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,wind_direction_10m",
+             daily: "temperature_2m_max,temperature_2m_min,precipitation_sum",
+             forecast_days: 7,
+             timezone: "auto",
+             temperature_unit: "celsius",
+             wind_speed_unit: "kmh",
+           },
+         }
+       );
 
-    fetchForecastData();
-  }, []);
+       if (response.data) {
+         setForecastData(response.data);
+         console.log("Forecast Data:", response.data);
+       } else {
+         setError("Unable to fetch forecast data");
+       }
+     } catch (err) {
+       setError("Error fetching forecast data");
+       console.error(err);
+     }
+   };
+
+   if (firstLat && firstLong) {
+     fetchForecastData();
+   }
+ }, [firstLat, firstLong]);
 
   if (error) {
     return <div>{error}</div>;

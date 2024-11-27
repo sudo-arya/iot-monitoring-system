@@ -42,14 +42,16 @@ const SignIn = () => {
       });
 
       if (response.status === 200) {
-        const { token, user } = response.data;
+        const { token, user, locations } = response.data;
+        console.log("API Response:", response.data);
 
         // Save token and user details in local storage
         localStorage.setItem("token", token);
         localStorage.setItem("userId", user.userId);
         localStorage.setItem("userRole", user.role.trim().toLowerCase()); // Always store roles in lowercase
-        // Save locations in local storage
-        const userLocations = user.locations || []; // Replace `user.locations` with the actual locations array from your response
+        // Ensure locations are an array and save them to localStorage
+        const userLocations =
+          Array.isArray(locations) && locations.length > 0 ? locations : [];
         localStorage.setItem("locations", JSON.stringify(userLocations));
 
         // Redirect based on role

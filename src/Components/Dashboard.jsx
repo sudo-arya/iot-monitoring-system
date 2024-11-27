@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import WeatherComponent from "./WeatherComponent";
 import WeatherForecastComponent from "./WeatherForecastComponent";
+// eslint-disable-next-line
 import PiGraph from "./PiGraph";
 import MapComponent from "./MapComponent";
 
@@ -15,16 +16,6 @@ const Dashboard = () => {
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   // eslint-disable-next-line
   const [isLoading, setIsLoading] = useState(false); // Loading state
-
-  // Fetch locations from login response
-  useEffect(() => {
-    const storedLocations = JSON.parse(localStorage.getItem("locations"));
-    if (storedLocations) {
-      setLocations(storedLocations);
-    }
-  }, []);
-
-  const [locations, setLocations] = useState([]);
 
   useEffect(() => {
     if (location.state?.toastMessage) {
@@ -45,6 +36,8 @@ const Dashboard = () => {
 
   const userId = localStorage.getItem("userId");
   console.log("User ID:", userId);
+  const locations = JSON.parse(localStorage.getItem("locations")) || [];
+  console.log(locations); // This will log the array of locations
 
   // const locations = [
   //   { latitude: 28.6139, longitude: 77.209 },
@@ -78,21 +71,29 @@ const Dashboard = () => {
         {/* <h2>{userId}</h2> */}
         <div>
           <div className="my-2">
-            <WeatherComponent />
+            <WeatherComponent locations={locations} />
           </div>
 
           <div className=" my-2">
             {/* overflow-x-auto */}
             {/* Wrap the graph component in a div with limited width and scrollable overflow */}
 
-            <WeatherForecastComponent />
+            <WeatherForecastComponent locations={locations} />
           </div>
 
           <div className="h-40 xl:visible hidden">&nbsp;</div>
         </div>
-        <div className="my-2 xl:mx-8 h-fit w-full z-10">
-          {/* ghgcg */}
-          <MapComponent locations={locations} />
+        <div className="my-2 xl:mx-8">
+          <div className=" relative">
+            {/* White Div that will overlap on the MapComponent */}
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white p-3 underline shadow-lg rounded-md text-center text-xl font-semibold text-gray-700 z-20">
+              Select Farm Area
+            </div>
+
+            {/* MapComponent below the overlapping white div */}
+            <MapComponent locations={locations} />
+          </div>
+          <div>target div</div>
         </div>
       </div>
     </div>

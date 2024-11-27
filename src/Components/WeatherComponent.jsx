@@ -5,13 +5,38 @@ import { FaCloudRain } from "react-icons/fa";
 // import sunrise from "../Asset/noun-sunrise-7393088.svg";
 // import sunset from "../Asset/noun-sunrise-7393088.svg";
 
-const WeatherComponent = () => {
+const WeatherComponent = ({ locations }) => {
   const [weatherData, setWeatherData] = useState(null);
   const [error, setError] = useState(null);
 
+  const [firstLat, setFirstLat] = useState(null);
+  const [firstLong, setFirstLong] = useState(null);
+  useEffect(() => {
+    if (locations?.length > 0) {
+      const { latitude, longitude } = locations[0];
+      if (latitude && longitude) {
+        setFirstLat(latitude);
+        setFirstLong(longitude);
+      } else {
+        console.error(
+          "Latitude or longitude is missing in the first location."
+        );
+      }
+    } else {
+      console.warn("No locations provided");
+    }
+  }, [locations]);
+
   // Coordinates for the location
-  const lat = 22.316718169420145;
-  const lon = 87.317671736126;
+  // const lat = 22.314806706030907;
+  // const lon = 87.32086776565481;
+  //  const lat = firstLat;
+  //  const lon = firstLong;
+  // const lat = firstLat;
+  // const lon = firstLong;
+  // console.log(lat);
+  // console.log(lon);
+
 
   const [lastUpdated, setLastUpdated] = useState("");
 
@@ -23,8 +48,8 @@ const WeatherComponent = () => {
           `https://api.open-meteo.com/v1/forecast`,
           {
             params: {
-              latitude: lat,
-              longitude: lon,
+              latitude: firstLat,
+              longitude: firstLong,
               current_weather: true, // Requesting the current weather
               timezone: "auto", // Automatically detect timezone
             },
@@ -42,7 +67,7 @@ const WeatherComponent = () => {
     };
 
     fetchWeatherData();
-  }, [lat, lon]);
+  }, [firstLat, firstLong]);
 
   useEffect(() => {
     const fetchWeatherData = async () => {
@@ -52,8 +77,8 @@ const WeatherComponent = () => {
           `https://api.open-meteo.com/v1/forecast`,
           {
             params: {
-              latitude: lat,
-              longitude: lon,
+              latitude: firstLat,
+              longitude: firstLong,
               daily: [
                 "temperature_2m_max",
                 "temperature_2m_min",
@@ -111,9 +136,10 @@ const WeatherComponent = () => {
         console.error(err);
       }
     };
-
-    fetchWeatherData();
-  }, []); // Run once on mount
+    if (firstLat && firstLong) {
+      fetchWeatherData();
+    }
+  }, [firstLat, firstLong]); // Run once on mount
 
   const convertSeconds = (seconds) => {
     if (seconds < 3600) {
@@ -669,7 +695,6 @@ const WeatherComponent = () => {
         {/* <p>Sunshine Duration: {convertSeconds(sunshine_duration)}</p>
         <p>Daylight Duration: {convertSeconds(daylight_duration)}</p> */}
       </div>
-     
     </div>
   );
 };

@@ -36,6 +36,8 @@ const Navbar = () => {
     // Clear localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("userRole");
+    localStorage.removeItem("locations");
+    localStorage.removeItem("userId");
 
     // Redirect to Sign-in page with a toast message
     navigate("/", {
