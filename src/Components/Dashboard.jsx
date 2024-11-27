@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import WeatherComponent from "./WeatherComponent";
 import WeatherForecastComponent from "./WeatherForecastComponent";
 import PiGraph from "./PiGraph";
+import MapComponent from "./MapComponent";
 
 
 const Dashboard = () => {
@@ -14,7 +15,16 @@ const Dashboard = () => {
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   // eslint-disable-next-line
   const [isLoading, setIsLoading] = useState(false); // Loading state
-  
+
+  // Fetch locations from login response
+  useEffect(() => {
+    const storedLocations = JSON.parse(localStorage.getItem("locations"));
+    if (storedLocations) {
+      setLocations(storedLocations);
+    }
+  }, []);
+
+  const [locations, setLocations] = useState([]);
 
   useEffect(() => {
     if (location.state?.toastMessage) {
@@ -35,6 +45,12 @@ const Dashboard = () => {
 
   const userId = localStorage.getItem("userId");
   console.log("User ID:", userId);
+
+  // const locations = [
+  //   { latitude: 28.6139, longitude: 77.209 },
+  //   { latitude: 19.076, longitude: 72.8777 },
+  //   { latitude: 13.0827, longitude: 80.2707 },
+  // ];
 
   return (
     <div className="w-full h-full flex  ">
@@ -74,11 +90,13 @@ const Dashboard = () => {
 
           <div className="h-40 xl:visible hidden">&nbsp;</div>
         </div>
-        <div className="my-2 xl:mx-8"><PiGraph/></div>
+        <div className="my-2 xl:mx-8 h-fit w-full z-10">
+          {/* ghgcg */}
+          <MapComponent locations={locations} />
+        </div>
       </div>
     </div>
   );
-
 };
 
 export default Dashboard;

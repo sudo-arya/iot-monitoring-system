@@ -48,6 +48,9 @@ const SignIn = () => {
         localStorage.setItem("token", token);
         localStorage.setItem("userId", user.userId);
         localStorage.setItem("userRole", user.role.trim().toLowerCase()); // Always store roles in lowercase
+        // Save locations in local storage
+        const userLocations = user.locations || []; // Replace `user.locations` with the actual locations array from your response
+        localStorage.setItem("locations", JSON.stringify(userLocations));
 
         // Redirect based on role
         if (user.role === "admin") {

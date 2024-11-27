@@ -115,6 +115,20 @@ app.post("/login", (req, res) => {
       { expiresIn: "10h" } // Token expiration time
     );
 
+// const query = `SELECT latitude, longitude FROM ${user.userId}_pi_table`;
+// db.query(query, (err, results) => {
+//   if (err) {
+//     console.error("Error fetching location data:", err);
+//     return res.status(500).json({ message: "Error fetching location data" });
+//   }
+
+//   // Map results into a format suitable for your frontend
+//   const locationData = results.map((row) => ({
+//     latitude: row.latitude,
+//     longitude: row.longitude,
+//   }));
+// });
+    
     // Create log entry in the logs table
     const logQuery = `
       INSERT INTO log_data (log_type, log_message, timestamp) 
@@ -133,6 +147,7 @@ app.post("/login", (req, res) => {
       message: "Login successful",
       token,
       user: { userId: user.user_id, role: user.role, name: user.user_name },
+      // locations: locationData, // Add location data here
     });
   });
 });
