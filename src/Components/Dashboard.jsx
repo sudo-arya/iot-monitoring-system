@@ -5,7 +5,7 @@ import WeatherComponent from "./WeatherComponent";
 import WeatherForecastComponent from "./WeatherForecastComponent";
 // eslint-disable-next-line
 import PiGraph from "./PiGraph";
-import MapComponent from "./MapComponent";
+import { MapComponent, MapPage } from "./MapComponent";
 
 
 const Dashboard = () => {
@@ -44,6 +44,25 @@ const Dashboard = () => {
   //   { latitude: 19.076, longitude: 72.8777 },
   //   { latitude: 13.0827, longitude: 80.2707 },
   // ];
+
+  const [selectedLocation, setSelectedLocation] = useState(null); // State to store selected marker data
+
+  useEffect(() => {
+    if (location.state?.toastMessage) {
+      setToastMessage(location.state.toastMessage);
+      setToastColor(location.state.toastColor);
+      const timer = setTimeout(() => {
+        setToastMessage("");
+      }, 3000);
+      window.history.replaceState({}, document.title);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
+
+  // Update selected location when a marker is clicked
+  const handleMarkerClick = (location) => {
+    setSelectedLocation(location); // Set the selected location in the parent
+  };
 
   return (
     <div className="w-full h-full flex  ">
@@ -89,11 +108,30 @@ const Dashboard = () => {
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white p-3 underline shadow-lg rounded-md text-center text-xl font-semibold text-gray-700 z-20">
               Select Farm Area
             </div>
-
             {/* MapComponent below the overlapping white div */}
-            <MapComponent locations={locations} />
+            <MapComponent
+              locations={locations}
+              onMarkerClick={handleMarkerClick}
+              setSelectedLocation={setSelectedLocation} // Pass the setSelectedLocation function as a prop
+            />{" "}
           </div>
-          <div>target div</div>
+          {/* Target Div to show content based on selected location */}
+          <div className="mt-4 p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg">
+            {selectedLocation ? (
+              <div>
+                <h2 className="text-xl font-semibold">
+                  {selectedLocation.piLocation}
+                </h2>
+                <p>Status: {selectedLocation.piStatus}</p>
+                <p>
+                  {/* Coordinates: {selectedLocation.latitude},{" "}
+                  {selectedLocation.longitude} */}
+                </p>
+              </div>
+            ) : (
+              <p>Select a location from the map to see details here.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>

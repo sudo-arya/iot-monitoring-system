@@ -49,7 +49,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="w-full bg-blue-800 p-2 pl-16 pr-8 py-3 fixed top-0 z-50">
+    <nav className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 p-2 pl-16 pr-8 py-3 fixed top-0 z-50">
       <div className="mx-auto flex justify-between items-center font-bold text-lg ">
         {" "}
         <Link to="/" className="flex items-center xl:space-x-2">

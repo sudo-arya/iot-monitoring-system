@@ -2,15 +2,13 @@ import React, { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useNavigate } from "react-router-dom";
 
 // Fix default icon issue in Leaflet
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-const MapComponent = ({ locations }) => {
+const MapComponent = ({ locations, setSelectedLocation }) => {
   const defaultCenter = [20.5937, 78.9629]; // Center on India (default)
   const defaultZoom = 13;
-  const navigate = useNavigate();
 
   const [popupPosition, setPopupPosition] = useState(null); // Track popup position
 
@@ -38,7 +36,7 @@ const MapComponent = ({ locations }) => {
       className: "",
     });
 
-  const MarkerWithPopup = ({ location, onMarkerClick }) => {
+  const MarkerWithPopup = ({ location }) => {
     const markerRef = useRef(null);
     const [isMobile, setIsMobile] = useState(false);
     const [popupOpen, setPopupOpen] = useState(false); // Track popup visibility
@@ -68,13 +66,9 @@ const MapComponent = ({ locations }) => {
       }
     };
 
-    // Handle click to open popup
+    // Handle click to show content in the target div
     const handleClick = () => {
-      if (markerRef.current) {
-        markerRef.current.openPopup();
-        setPopupOpen(true); // Open popup on click
-      }
-      onMarkerClick(location.piId); // Notify parent component of the click
+      setSelectedLocation(location); // Use setSelectedLocation to update the parent state
     };
 
     return (
@@ -85,11 +79,17 @@ const MapComponent = ({ locations }) => {
         eventHandlers={{
           mouseover: handleMouseOver,
           mouseout: handleMouseOut,
-          click: handleClick, // Show popup on click
+          click: handleClick, // Show content in target div on click
         }}
       >
         {/* Tooltip to show permanent piLocation */}
-        <Tooltip direction="top" className="rounded-3xl" offset={[-10, -10]} opacity={1} permanent>
+        <Tooltip
+          direction="top"
+          className="rounded-3xl"
+          offset={[-10, -10]}
+          opacity={1}
+          permanent
+        >
           <div className="text-sm">{location.piLocation}</div>
         </Tooltip>
 
@@ -130,17 +130,12 @@ const MapComponent = ({ locations }) => {
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-          className="bg-black h-20 top-0"
-        />
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         />
         {locations.map((location, index) => (
           <MarkerWithPopup
             key={index}
             location={location}
-            onMarkerClick={(piId) => navigate(`/piId/${piId}`)} // Pass the click handler to each marker
+            setSelectedLocation={setSelectedLocation} // Pass setSelectedLocation to MarkerWithPopup
           />
         ))}
         {/* Popup to show when clicking anywhere on the map */}
@@ -159,4 +154,44 @@ const MapComponent = ({ locations }) => {
   );
 };
 
-export default MapComponent;
+const MapPage = ({ locations }) => {
+  const [selectedLocation, setSelectedLocation] = useState(null);
+
+  return (
+    <div className="my-2 xl:mx-8">
+      <div className="relative">
+        {/* White Div that will overlap on the MapComponent */}
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white p-3 underline shadow-lg rounded-md text-center text-xl font-semibold text-gray-700 z-20">
+          Select Farm Area
+        </div>
+
+        {/* MapComponent below the overlapping white div */}
+        <MapComponent
+          locations={locations}
+          setSelectedLocation={setSelectedLocation}
+        />
+      </div>
+      <div>
+        {/* Target div that will display selected content */}
+        {selectedLocation && (
+          <div className="p-4 mt-4 bg-white border rounded-md shadow-md">
+            <h3 className="text-xl font-semibold">Selected Location</h3>
+            <p>
+              <strong>Location:</strong> {selectedLocation.piLocation}
+            </p>
+            <p>
+              <strong>Status:</strong> {selectedLocation.piStatus}
+            </p>
+            <p>
+              <strong>Coordinates:</strong> Lat: {selectedLocation.latitude},
+              Long: {selectedLocation.longitude}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Exporting both components
+export { MapComponent, MapPage };
