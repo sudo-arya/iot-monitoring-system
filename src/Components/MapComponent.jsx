@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
 // Fix default icon issue in Leaflet
+// eslint-disable-next-line
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 const MapComponent = ({ locations, setSelectedLocation }) => {
@@ -39,6 +40,7 @@ const MapComponent = ({ locations, setSelectedLocation }) => {
   const MarkerWithPopup = ({ location }) => {
     const markerRef = useRef(null);
     const [isMobile, setIsMobile] = useState(false);
+    // eslint-disable-next-line
     const [popupOpen, setPopupOpen] = useState(false); // Track popup visibility
 
     // Update isMobile state based on screen size

@@ -131,7 +131,7 @@ app.post("/login", (req, res) => {
         latitude: row.latitude,
         longitude: row.longitude,
       }));
-      console.log(locationData);
+      // console.log(locationData);
       // Create log entry in the logs table
       const logQuery = `
       INSERT INTO log_data (log_type, log_message, timestamp) 
