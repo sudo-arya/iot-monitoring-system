@@ -43,7 +43,7 @@ const SignIn = () => {
 
       if (response.status === 200) {
         const { token, user, locations } = response.data;
-        console.log("API Response:", response.data);
+        // console.log("API Response:", response.data);
 
         // Save token and user details in local storage
         localStorage.setItem("token", token);

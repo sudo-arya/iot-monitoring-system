@@ -178,6 +178,7 @@ const MapPage = ({ locations }) => {
         {selectedLocation && (
           <div className="p-4 mt-4 bg-white border rounded-md shadow-md">
             <h3 className="text-xl font-semibold">Selected Location</h3>
+            
             <p>
               <strong>Location:</strong> {selectedLocation.piLocation}
             </p>

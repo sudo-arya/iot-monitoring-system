@@ -38,7 +38,7 @@ const Dashboard = () => {
   const userId = localStorage.getItem("userId");
   console.log("User ID:", userId);
   const locations = JSON.parse(localStorage.getItem("locations")) || [];
-  console.log(locations); // This will log the array of locations
+  // console.log(locations); // This will log the array of locations
 
   // const locations = [
   //   { latitude: 28.6139, longitude: 77.209 },
@@ -124,6 +124,7 @@ const Dashboard = () => {
                   {selectedLocation.piLocation}
                 </h2>
                 <p>Status: {selectedLocation.piStatus}</p>
+                <p>ID: {selectedLocation.piId}</p>
                 <p>
                   {/* Coordinates: {selectedLocation.latitude},{" "}
                   {selectedLocation.longitude} */}

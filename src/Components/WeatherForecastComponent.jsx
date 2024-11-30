@@ -22,7 +22,7 @@ const WeatherForecastComponent = ({ locations }) => {
  }, [locations]);
   // const lat = 22.314806706030907;
   // const lon = 87.32086776565481;
-  console.log("Locations:", locations);
+  // console.log("Locations:", locations);
 
   // const lat = firstLat;
   // const lon = firstLong;
@@ -58,7 +58,7 @@ const WeatherForecastComponent = ({ locations }) => {
 
        if (response.data) {
          setForecastData(response.data);
-         console.log("Forecast Data:", response.data);
+        //  console.log("Forecast Data:", response.data);
        } else {
          setError("Unable to fetch forecast data");
        }

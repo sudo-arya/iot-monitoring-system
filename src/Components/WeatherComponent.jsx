@@ -17,6 +17,7 @@ const WeatherComponent = ({ locations }) => {
       if (latitude && longitude) {
         setFirstLat(latitude);
         setFirstLong(longitude);
+        
       } else {
         console.error(
           "Latitude or longitude is missing in the first location."
@@ -37,7 +38,8 @@ const WeatherComponent = ({ locations }) => {
   // console.log(lat);
   // console.log(lon);
 
-
+// console.log(firstLat);
+// console.log(firstLong);
   const [lastUpdated, setLastUpdated] = useState("");
 
   useEffect(() => {
@@ -195,105 +197,417 @@ const WeatherComponent = ({ locations }) => {
   const getWeatherInfo = (code) => {
     const weatherData = {
       0: {
-        description: "Clear sky",
+        description: "Cloud development not observed or not observable",
         image: "https://cdn-icons-png.flaticon.com/512/869/869869.png",
       },
       1: {
-        description: "Mainly clear",
+        description: "Clouds generally dissolving or becoming less developed",
         image: "https://cdn-icons-png.flaticon.com/512/1163/1163661.png",
       },
       2: {
-        description: "Partly cloudy",
+        description: "State of sky unchanged",
         image: "https://cdn-icons-png.flaticon.com/512/414/414825.png",
       },
       3: {
-        description: "Cloudy",
+        description: "Clouds generally forming or developing",
         image: "https://cdn-icons-png.flaticon.com/512/1163/1163624.png",
       },
       4: {
-        description: "Overcast",
-        image: "https://cdn-icons-png.flaticon.com/512/1146/1146869.png",
-      },
-      5: {
-        description: "Fog",
-        image: "https://cdn-icons-png.flaticon.com/512/1146/1146882.png",
-      },
-      6: {
-        description: "Freezing fog",
-        image: "https://cdn-icons-png.flaticon.com/512/3216/3216953.png",
-      },
-      7: {
-        description: "Light rain",
-        image: "https://cdn-icons-png.flaticon.com/512/414/414974.png",
-      },
-      8: {
-        description: "Moderate rain",
-        image: "https://cdn-icons-png.flaticon.com/512/3093/3093390.png",
-      },
-      9: {
-        description: "Heavy rain",
-        image: "https://cdn-icons-png.flaticon.com/512/414/414979.png",
-      },
-      10: {
-        description: "Light snow",
-        image: "https://cdn-icons-png.flaticon.com/512/869/869860.png",
-      },
-      11: {
-        description: "Moderate snow",
-        image: "https://cdn-icons-png.flaticon.com/512/414/414986.png",
-      },
-      12: {
-        description: "Heavy snow",
-        image: "https://cdn-icons-png.flaticon.com/512/1146/1146893.png",
-      },
-      13: {
-        description: "Snow grains",
-        image: "https://cdn-icons-png.flaticon.com/512/414/414991.png",
-      },
-      14: {
-        description: "Hail",
-        image: "https://cdn-icons-png.flaticon.com/512/414/414973.png",
-      },
-      15: {
-        description: "Thunderstorm",
-        image: "https://cdn-icons-png.flaticon.com/512/869/869868.png",
-      },
-      16: {
-        description: "Light thunderstorm",
-        image: "https://cdn-icons-png.flaticon.com/512/3093/3093387.png",
-      },
-      17: {
-        description: "Moderate thunderstorm",
-        image: "https://cdn-icons-png.flaticon.com/512/869/869862.png",
-      },
-      18: {
-        description: "Heavy thunderstorm",
-        image: "https://cdn-icons-png.flaticon.com/512/1146/1146879.png",
-      },
-      19: {
-        description: "Dust",
-        image: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png",
-      },
-      20: {
-        description: "Sand",
-        image: "https://cdn-icons-png.flaticon.com/512/2917/2917999.png",
-      },
-      21: {
-        description: "Ash",
-        image: "https://cdn-icons-png.flaticon.com/512/2917/2918000.png",
-      },
-      22: {
-        description: "Squall",
+        description: "Visibility reduced by smoke",
         image: "https://cdn-icons-png.flaticon.com/512/869/869864.png",
       },
-      23: {
-        description: "Tornado",
+      5: {
+        description: "Haze",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png",
+      },
+      6: {
+        description: "Widespread dust in suspension",
+        image: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png",
+      },
+      7: {
+        description: "Dust or sand raised by wind",
+        image: "https://cdn-icons-png.flaticon.com/512/2917/2917999.png",
+      },
+      8: {
+        description: "Well developed dust whirl(s) or sand whirl(s)",
+        image: "https://cdn-icons-png.flaticon.com/512/2917/2918000.png",
+      },
+      9: {
+        description: "Duststorm or sandstorm within sight",
         image: "https://cdn-icons-png.flaticon.com/512/869/869870.png",
+      },
+      10: {
+        description: "Mist",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      11: {
+        description: "Patches shallow fog or ice fog",
+        image: "https://cdn-icons-png.flaticon.com/512/1146/1146869.png",
+      },
+      12: {
+        description: "More or less continuous fog or ice fog",
+        image: "https://cdn-icons-png.flaticon.com/512/3216/3216953.png",
+      },
+      13: {
+        description: "Lightning visible, no thunder heard",
+        image: "https://cdn-icons-png.flaticon.com/512/869/869862.png",
+      },
+      14: {
+        description: "Precipitation within sight, not reaching the ground",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      15: {
+        description:
+          "Precipitation within sight, reaching the ground but distant",
+        image: "https://cdn-icons-png.flaticon.com/512/414/414979.png",
+      },
+      16: {
+        description: "Precipitation within sight, near to the station",
+        image: "https://cdn-icons-png.flaticon.com/512/414/414974.png",
+      },
+      17: {
+        description: "Thunderstorm, no precipitation",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      18: {
+        description: "Squalls",
+        image: "https://cdn-icons-png.flaticon.com/512/869/869864.png",
+      },
+      19: {
+        description: "Funnel cloud(s) (Tornado or water-spout)",
+        image: "https://cdn-icons-png.flaticon.com/512/869/869870.png",
+      },
+      20: {
+        description: "Drizzle, not freezing",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png",
+      },
+      21: {
+        description: "Rain (not freezing)",
+        image: "https://cdn-icons-png.flaticon.com/512/4088/4088981.png",
+      },
+      22: {
+        description: "Snow",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png",
+      },
+      23: {
+        description: "Rain and snow or ice pellets",
+        image: "https://cdn-icons-png.flaticon.com/512/414/414986.png",
+      },
+      24: {
+        description: "Freezing drizzle or freezing rain",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png",
+      },
+      25: {
+        description: "Shower(s) of rain",
+        image: "https://cdn-icons-png.flaticon.com/512/4088/4088981.png",
+      },
+      26: {
+        description: "Shower(s) of snow or rain and snow",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png",
+      },
+      27: {
+        description: "Shower(s) of hail or rain and hail",
+        image: "https://cdn-icons-png.flaticon.com/512/1146/1146893.png",
+      },
+      28: {
+        description: "Fog or ice fog",
+        image: "https://cdn-icons-png.flaticon.com/512/1146/1146882.png",
+      },
+      29: {
+        description: "Thunderstorm (with or without precipitation)",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      30: {
+        description: "Slight or moderate duststorm or sandstorm",
+        image: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png",
+      },
+      31: {
+        description: "No appreciable change in duststorm or sandstorm",
+        image: "https://cdn-icons-png.flaticon.com/512/2917/2917999.png",
+      },
+      32: {
+        description: "Slight or moderate blowing snow",
+        image: "https://cdn-icons-png.flaticon.com/512/869/869862.png",
+      },
+      33: {
+        description: "Severe duststorm or sandstorm",
+        image: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png",
+      },
+      34: {
+        description: "No appreciable change in blowing snow",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png",
+      },
+      35: {
+        description: "Increasing blowing snow",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      36: {
+        description: "Slight or moderate blowing snow (low)",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png",
+      },
+      37: {
+        description: "Heavy drifting snow",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png",
+      },
+      38: {
+        description: "Slight or moderate blowing snow (high)",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png",
+      },
+      39: {
+        description: "Heavy drifting snow",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png",
+      },
+      40: {
+        description: "Fog or ice fog at a distance",
+        image: "https://cdn-icons-png.flaticon.com/512/869/869864.png",
+      },
+      41: {
+        description: "Fog or ice fog in patches",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      42: {
+        description: "Fog or ice fog, sky visible",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      43: {
+        description: "Fog or ice fog, sky invisible",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      44: {
+        description: "Fog or ice fog, sky visible, no appreciable change",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      45: {
+        description: "Fog or ice fog, sky invisible",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      46: {
+        description: "Fog or ice fog, sky visible, becoming thicker",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      47: {
+        description: "Fog or ice fog, sky invisible",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      48: {
+        description: "Fog, depositing rime",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+      49: {
+        description: "Fog, freezing",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png",
+      },
+
+      50: {
+        description: "Fog, with visibility restricted",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png", // fog icon
+      },
+      51: {
+        description: "Light snow with moderate wind",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      52: {
+        description: "Moderate snow with moderate wind",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      53: {
+        description: "Heavy snow with moderate wind",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      54: {
+        description: "Light snow with strong wind",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      55: {
+        description: "Moderate snow with strong wind",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      56: {
+        description: "Heavy snow with strong wind",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      57: {
+        description: "Light rain with moderate wind",
+        image: "https://cdn-icons-png.flaticon.com/512/4088/4088981.png", // rain icon
+      },
+      58: {
+        description: "Moderate rain with moderate wind",
+        image: "https://cdn-icons-png.flaticon.com/512/4088/4088981.png", // rain icon
+      },
+      59: {
+        description: "Heavy rain with moderate wind",
+        image: "https://cdn-icons-png.flaticon.com/512/4088/4088981.png", // rain icon
+      },
+      60: {
+        description: "Light rain with strong wind",
+        image: "https://cdn-icons-png.flaticon.com/512/4088/4088981.png", // rain icon
+      },
+      61: {
+        description: "Moderate rain with strong wind",
+        image: "https://cdn-icons-png.flaticon.com/512/4088/4088981.png", // rain icon
+      },
+      62: {
+        description: "Heavy rain with strong wind",
+        image: "https://cdn-icons-png.flaticon.com/512/4088/4088981.png", // rain icon
+      },
+      63: {
+        description: "Light snow with freezing rain",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      64: {
+        description: "Moderate snow with freezing rain",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      65: {
+        description: "Heavy snow with freezing rain",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      66: {
+        description: "Light snow with sleet",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      67: {
+        description: "Moderate snow with sleet",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      68: {
+        description: "Heavy snow with sleet",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      69: {
+        description: "Light snow with thunderstorms",
+        image: "https://cdn-icons-png.flaticon.com/512/4724/4724103.png", // thunderstorm icon
+      },
+      70: {
+        description: "Moderate snow with thunderstorms",
+        image: "https://cdn-icons-png.flaticon.com/512/4724/4724103.png", // thunderstorm icon
+      },
+      71: {
+        description: "Heavy snow with thunderstorms",
+        image: "https://cdn-icons-png.flaticon.com/512/4724/4724103.png", // thunderstorm icon
+      },
+      72: {
+        description: "Light snow with heavy fog",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png", // fog icon
+      },
+      73: {
+        description: "Moderate snow with heavy fog",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png", // fog icon
+      },
+      74: {
+        description: "Heavy snow with heavy fog",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png", // fog icon
+      },
+      75: {
+        description: "Light snow with visibility reduction",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      76: {
+        description: "Moderate snow with visibility reduction",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      77: {
+        description: "Heavy snow with visibility reduction",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      78: {
+        description: "Light snow with freezing fog",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png", // fog icon
+      },
+      79: {
+        description: "Moderate snow with freezing fog",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png", // fog icon
+      },
+      80: {
+        description: "Heavy snow with freezing fog",
+        image: "https://cdn-icons-png.flaticon.com/512/4089/4089253.png", // fog icon
+      },
+      81: {
+        description: "Thunderstorm with light rain",
+        image: "https://cdn-icons-png.flaticon.com/512/4724/4724103.png", // thunderstorm icon
+      },
+      82: {
+        description: "Thunderstorm with moderate rain",
+        image: "https://cdn-icons-png.flaticon.com/512/4724/4724103.png", // thunderstorm icon
+      },
+      83: {
+        description: "Thunderstorm with heavy rain",
+        image: "https://cdn-icons-png.flaticon.com/512/4724/4724103.png", // thunderstorm icon
+      },
+      84: {
+        description: "Thunderstorm with light snow",
+        image: "https://cdn-icons-png.flaticon.com/512/4724/4724103.png", // thunderstorm icon
+      },
+      85: {
+        description: "Thunderstorm with moderate snow",
+        image: "https://cdn-icons-png.flaticon.com/512/4724/4724103.png", // thunderstorm icon
+      },
+      86: {
+        description: "Thunderstorm with heavy snow",
+        image: "https://cdn-icons-png.flaticon.com/512/4724/4724103.png", // thunderstorm icon
+      },
+      87: {
+        description: "Heavy rain with hail",
+        image: "https://cdn-icons-png.flaticon.com/512/4165/4165590.png", // hail icon
+      },
+      88: {
+        description: "Light rain with hail",
+        image: "https://cdn-icons-png.flaticon.com/512/4165/4165590.png", // hail icon
+      },
+      89: {
+        description: "Moderate rain with hail",
+        image: "https://cdn-icons-png.flaticon.com/512/4165/4165590.png", // hail icon
+      },
+      90: {
+        description: "Light snow with hail",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      91: {
+        description: "Moderate snow with hail",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      92: {
+        description: "Heavy snow with hail",
+        image: "https://cdn-icons-png.flaticon.com/512/6363/6363108.png", // snow icon
+      },
+      93: {
+        description: "Light snow with thunder",
+        image: "https://cdn-icons-png.flaticon.com/512/5454/5454492.png", // thunderstorm icon
+      },
+      94: {
+        description: "Moderate snow with thunder",
+        image: "https://cdn-icons-png.flaticon.com/512/5454/5454492.png", // thunderstorm icon
+      },
+      95: {
+        description: "Heavy snow with thunder",
+        image: "https://cdn-icons-png.flaticon.com/512/5454/5454492.png", // thunderstorm icon
+      },
+      96: {
+        description: "Thunderstorm with snow",
+        image: "https://cdn-icons-png.flaticon.com/512/5454/5454492.png", // thunderstorm icon
+      },
+      97: {
+        description: "Severe thunderstorm with snow",
+        image: "https://cdn-icons-png.flaticon.com/512/5454/5454492.png", // thunderstorm icon
+      },
+      98: {
+        description: "Severe thunderstorm with ice pellets",
+        image: "https://cdn-icons-png.flaticon.com/512/5454/5454492.png", // thunderstorm icon
+      },
+      99: {
+        description: "Extremely severe thunderstorm with ice pellets",
+        image: "https://cdn-icons-png.flaticon.com/512/5454/5454492.png", // thunderstorm icon
       },
     };
 
-    return weatherData[code] || { description: "Unknown", image: "" };
+    return (
+      weatherData[code] || {
+        description: "Unknown weather condition",
+        image: "https://cdn-icons-png.flaticon.com/512/869/869869.png",
+      }
+    );
   };
+
 
   const getUVIndexInfo = (uvIndex) => {
     let uvCategory = "";
@@ -481,6 +795,7 @@ const WeatherComponent = ({ locations }) => {
           <div className="flex my-1 xl:w-1/2 font-semibold xl:pl-4 ">
             <FaCloudRain size={26} title="Wind" className="mr-2" />
             Precipitation: {precipitation_sum}
+            {/* Weather code: {weather_code} */}
           </div>
         </div>
 
