@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 // const WebSocket = require("ws");
 
+
 // Initialize Express
 const app = express();
 app.use(bodyParser.json()); // To handle JSON request body
@@ -167,7 +168,12 @@ function sseMiddleware(req, res, next) {
   };
 
   res.sseSend = (data) => {
-    res.write(`data: ${JSON.stringify(data)}\n\n`); // Ensure data is serialized as JSON
+    try {
+      const jsonData = JSON.stringify(data); // Ensure data is serialized as JSON
+      res.write(`data: ${jsonData}\n\n`);
+    } catch (err) {
+      console.error("Error serializing data:", err);
+    }
   };
 
   next();
@@ -176,13 +182,11 @@ function sseMiddleware(req, res, next) {
 app.use(sseMiddleware);
 
 // SSE Route to stream sensor data
-app.get("/get-latest-sensor-data", (req, res) => {
+app.get("/get-latest-sensor-data", async (req, res) => {
   const { user_id, sensor_id } = req.query;
 
   if (!user_id || !sensor_id) {
-    return res
-      .status(400)
-      .json({ error: "user_id and sensor_id are required" });
+    return res.status(400).json({ error: "user_id and sensor_id are required" });
   }
 
   // Set up the response for SSE
@@ -197,7 +201,7 @@ app.get("/get-latest-sensor-data", (req, res) => {
     // Check if the new data differs from the last sent data
     if (JSON.stringify(data) !== lastSentData) {
       res.sseSend(data); // Send the data using the sseSend method
-      lastSentData = JSON.stringify(data);  // Store the last sent data
+      lastSentData = JSON.stringify(data); // Store the last sent data
     }
   };
 
@@ -217,41 +221,41 @@ app.get("/get-latest-sensor-data", (req, res) => {
           reject(err);
         } else {
           resolve(results);
+          // console.log(results);
         }
       });
     });
   };
 
-  // Query and send the initial data
-  getSensorData()
-    .then((data) => {
-      sendData(data); // Send initial data
-      // Set interval to send updated data every 5 seconds
-      const intervalId = setInterval(() => {
-        getSensorData()
-          .then((data) => {
-            sendData(data); // Send updated data if there is new data
-          })
-          .catch((err) => {
-            console.error("Error fetching sensor data:", err);
-            clearInterval(intervalId); // Stop the interval on error
-            res.end(); // Close the response on error
-          });
-      }, 5000);
+  try {
+    const data = await getSensorData();
+    sendData(data); // Send initial data
 
-      // Cleanup when the connection is closed or client stops listening
-      req.on("close", () => {
-        console.log("Client disconnected. Cleaning up SSE connection.");
-        clearInterval(intervalId); // Clear the interval on disconnect
-        res.end(); // End the SSE connection
-      });
-    })
-    .catch((err) => {
-      console.error("Database query failed:", err);
-      res.status(500).json({ error: "Database query failed" });
-      res.end();
+    // Set interval to send updated data every 5 seconds
+    const intervalId = setInterval(async () => {
+      try {
+        const data = await getSensorData();
+        sendData(data); // Send updated data if there is new data
+      } catch (err) {
+        console.error("Error fetching sensor data:", err);
+        clearInterval(intervalId); // Stop the interval on error
+        res.end(); // Close the response on error
+      }
+    }, 5000);
+
+    // Cleanup when the connection is closed or client stops listening
+    req.on("close", () => {
+      console.log("Client disconnected. Cleaning up SSE connection.");
+      clearInterval(intervalId); // Clear the interval on disconnect
+      res.end(); // End the SSE connection
     });
+  } catch (err) {
+    console.error("Database query failed:", err);
+    res.status(500).json({ error: "Database query failed" });
+    res.end();
+  }
 });
+
 
 
 
