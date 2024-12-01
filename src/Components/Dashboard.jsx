@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import SensorDataDisplay from "./SensorDataDisplay";
 import WeatherComponent from "./WeatherComponent";
 import WeatherForecastComponent from "./WeatherForecastComponent";
 // eslint-disable-next-line
@@ -133,6 +134,13 @@ const Dashboard = () => {
             ) : (
               <p>Select a location from the map to see details here.</p>
             )}
+          </div>
+          <div className="mt-4 p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg">
+            <SensorDataDisplay
+              selectedLocation={selectedLocation}
+              userId={userId}
+              // piId={selectedLocation.piId}
+            />
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ const mysql = require("mysql2");
 require("dotenv").config(); // Load environment variables
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const WebSocket = require("ws");
 
 // Initialize Express
 const app = express();
@@ -27,7 +28,24 @@ db.connect((err) => {
   console.log("Connected to the MySQL database");
 });
 
+// SSE Middleware
+function sseMiddleware(req, res, next) {
+    res.sseSetup = () => {
+        res.writeHead(200, {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive"
+        });
+    };
 
+    res.sseSend = (data) => {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    next();
+}
+
+app.use(sseMiddleware);
 
 // app.post("/login", (req, res) => {
 //   const { email, password } = req.body;
@@ -46,6 +64,210 @@ db.connect((err) => {
 //     }
 //   });
 // });
+
+const server = app.listen(3001, () => {
+  console.log("Server listening on port 3000");
+});
+
+const wss = new WebSocket.Server({ server });
+
+// Function to handle the WebSocket connection
+wss.on("connection", (ws, req) => {
+  const { user_id, sensor_id } = req.url
+    .split("?")
+    .pop()
+    .split("&")
+    .map((param) => param.split("="))
+    .reduce((acc, [key, value]) => {
+      acc[key] = value;
+      return acc;
+    }, {}); // Parse URL parameters
+
+  if (!user_id || !sensor_id) {
+    ws.send(JSON.stringify({ error: "user_id and sensor_id are required" }));
+    ws.close();
+    return;
+  }
+
+  console.log(
+    `New WebSocket connection for userId: ${user_id}, sensorId: ${sensor_id}`
+  );
+
+  // Set up the table name dynamically based on user_id
+  const tableName = `${user_id}_sensors_data`;
+
+  // Function to query the latest sensor data
+  const getSensorData = () => {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT timestamp, sensor_value, sensor_status
+        FROM ??
+        WHERE sensor_id = ?
+        ORDER BY timestamp DESC
+        LIMIT 25
+      `;
+
+      db.query(query, [tableName, sensor_id], (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+  };
+
+  // Function to send data over WebSocket
+  const sendData = (data) => {
+    ws.send(JSON.stringify(data));
+  };
+
+  // Query and send initial data
+  getSensorData()
+    .then((data) => {
+      sendData(data); // Send initial data
+
+      // Set interval to send updated data every 5 seconds
+      const intervalId = setInterval(() => {
+        getSensorData()
+          .then((data) => {
+            sendData(data);
+          })
+          .catch((err) => {
+            console.error(err);
+            clearInterval(intervalId);
+            ws.close();
+          });
+      }, 5000);
+
+      // Cleanup when the WebSocket connection is closed
+      ws.on("close", () => {
+        console.log("Client disconnected. Cleaning up WebSocket connection.");
+        clearInterval(intervalId);
+      });
+    })
+    .catch((err) => {
+      console.error("Database query failed:", err);
+      ws.send(JSON.stringify({ error: "Database query failed" }));
+      ws.close();
+    });
+});
+
+
+
+
+app.get("/get-latest-sensor-data", (req, res) => {
+  const { user_id, sensor_id } = req.query;
+
+  if (!user_id || !sensor_id) {
+    return res
+      .status(400)
+      .json({ error: "user_id and sensor_id are required" });
+  }
+
+  // Set up the response for SSE
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  const tableName = `${user_id}_sensors_data`;
+
+  // Function to send data in SSE format
+  const sendData = (data) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  // Query to get the latest sensor data
+  const getSensorData = () => {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT timestamp, sensor_value, sensor_status
+        FROM ??
+        WHERE sensor_id = ?
+        ORDER BY timestamp DESC
+        LIMIT 25
+      `;
+
+      db.query(query, [tableName, sensor_id], (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+  };
+
+  // Query and send the initial data
+  getSensorData()
+    .then((data) => {
+      sendData(data);
+      // Set interval to send updated data every 5 seconds
+      const intervalId = setInterval(() => {
+        getSensorData()
+          .then((data) => {
+            sendData(data);
+          })
+          .catch((err) => {
+            console.error(err);
+            clearInterval(intervalId);
+            res.end();
+          });
+      }, 5000);
+
+      // Cleanup when the connection is closed or client stops listening
+      req.on("close", () => {
+        console.log("Client disconnected. Cleaning up SSE connection.");
+        clearInterval(intervalId);
+        res.end();
+      });
+    })
+    .catch((err) => {
+      console.error("Database query failed:", err);
+      res.status(500).json({ error: "Database query failed" });
+      res.end();
+    });
+});
+
+
+
+// Endpoint to fetch available sensors for the given pi_id
+app.get('/get-sensor-data', (req, res) => {
+    const { user_id, pi_id } = req.query;
+
+    if (!user_id || !pi_id) {
+        return res.status(400).send({ error: 'user_id and pi_id are required' });
+    }
+
+    // Step 1: Fetch available sensors with required fields for the provided pi_id
+    const sensorsTable = `${user_id}_sensors_table`;
+
+    const query = `
+        SELECT s.sensor_id, s.sensor_type, s.min_sensor_value, s.max_sensor_value, s.sensor_unit
+        FROM ${sensorsTable} s
+        WHERE s.pi_id = ?;
+    `;
+
+    db.query(query, [pi_id], (err, sensors) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ error: 'Database query failed' });
+        }
+
+        if (!sensors.length) {
+            return res.status(404).send({ error: 'No sensors found for the given pi_id' });
+        }
+
+        // Step 2: Return the list of available sensors
+        return res.status(200).send(sensors);
+    });
+});
+
+
+
+
+
 
 
 app.post("/login", (req, res) => {
