@@ -5,6 +5,8 @@ import React, {
   useRef,
   useMemo,
 } from "react";
+import "event-source-polyfill";
+
 
 const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const [sensorData, setSensorData] = useState({});
