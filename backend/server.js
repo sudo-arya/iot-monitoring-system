@@ -4,7 +4,7 @@ const mysql = require("mysql2");
 require("dotenv").config(); // Load environment variables
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const WebSocket = require("ws");
+// const WebSocket = require("ws");
 
 // Initialize Express
 const app = express();
@@ -29,23 +29,23 @@ db.connect((err) => {
 });
 
 // SSE Middleware
-function sseMiddleware(req, res, next) {
-    res.sseSetup = () => {
-        res.writeHead(200, {
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive"
-        });
-    };
+// function sseMiddleware(req, res, next) {
+//     res.sseSetup = () => {
+//         res.writeHead(200, {
+//             "Content-Type": "text/event-stream",
+//             "Cache-Control": "no-cache",
+//             "Connection": "keep-alive"
+//         });
+//     };
 
-    res.sseSend = (data) => {
-        res.write(`data: ${JSON.stringify(data)}\n\n`);
-    };
+//     res.sseSend = (data) => {
+//         res.write(`data: ${JSON.stringify(data)}\n\n`);
+//     };
 
-    next();
-}
+//     next();
+// }
 
-app.use(sseMiddleware);
+// app.use(sseMiddleware);
 
 // app.post("/login", (req, res) => {
 //   const { email, password } = req.body;
@@ -65,97 +65,117 @@ app.use(sseMiddleware);
 //   });
 // });
 
-const server = app.listen(3001, () => {
-  console.log("Server listening on port 3000");
-});
+// const server = app.listen(3001, () => {
+//   console.log("Server listening on port 3000");
+// });
 
-const wss = new WebSocket.Server({ server });
+// const wss = new WebSocket.Server({ server });
 
-// Function to handle the WebSocket connection
-wss.on("connection", (ws, req) => {
-  const { user_id, sensor_id } = req.url
-    .split("?")
-    .pop()
-    .split("&")
-    .map((param) => param.split("="))
-    .reduce((acc, [key, value]) => {
-      acc[key] = value;
-      return acc;
-    }, {}); // Parse URL parameters
+// // Function to handle the WebSocket connection
+// wss.on("connection", (ws, req) => {
+//   const { user_id, sensor_id } = req.url
+//     .split("?")
+//     .pop()
+//     .split("&")
+//     .map((param) => param.split("="))
+//     .reduce((acc, [key, value]) => {
+//       acc[key] = value;
+//       return acc;
+//     }, {}); // Parse URL parameters
 
-  if (!user_id || !sensor_id) {
-    ws.send(JSON.stringify({ error: "user_id and sensor_id are required" }));
-    ws.close();
-    return;
-  }
+//   if (!user_id || !sensor_id) {
+//     ws.send(JSON.stringify({ error: "user_id and sensor_id are required" }));
+//     ws.close();
+//     return;
+//   }
 
-  console.log(
-    `New WebSocket connection for userId: ${user_id}, sensorId: ${sensor_id}`
-  );
+//   console.log(
+//     `New WebSocket connection for userId: ${user_id}, sensorId: ${sensor_id}`
+//   );
 
-  // Set up the table name dynamically based on user_id
-  const tableName = `${user_id}_sensors_data`;
+//   // Set up the table name dynamically based on user_id
+//   const tableName = `${user_id}_sensors_data`;
 
-  // Function to query the latest sensor data
-  const getSensorData = () => {
-    return new Promise((resolve, reject) => {
-      const query = `
-        SELECT timestamp, sensor_value, sensor_status
-        FROM ??
-        WHERE sensor_id = ?
-        ORDER BY timestamp DESC
-        LIMIT 25
-      `;
+//   // Function to query the latest sensor data
+//   const getSensorData = () => {
+//     return new Promise((resolve, reject) => {
+//       const query = `
+//         SELECT timestamp, sensor_value, sensor_status
+//         FROM ??
+//         WHERE sensor_id = ?
+//         ORDER BY timestamp DESC
+//         LIMIT 25
+//       `;
 
-      db.query(query, [tableName, sensor_id], (err, results) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(results);
-        }
-      });
+//       db.query(query, [tableName, sensor_id], (err, results) => {
+//         if (err) {
+//           reject(err);
+//         } else {
+//           resolve(results);
+//         }
+//       });
+//     });
+//   };
+
+//   // Function to send data over WebSocket
+//   const sendData = (data) => {
+//     ws.send(JSON.stringify(data));
+//   };
+
+//   // Query and send initial data
+//   getSensorData()
+//     .then((data) => {
+//       sendData(data); // Send initial data
+
+//       // Set interval to send updated data every 5 seconds
+//       const intervalId = setInterval(() => {
+//         getSensorData()
+//           .then((data) => {
+//             sendData(data);
+//           })
+//           .catch((err) => {
+//             console.error(err);
+//             clearInterval(intervalId);
+//             ws.close();
+//           });
+//       }, 5000);
+
+//       // Cleanup when the WebSocket connection is closed
+//       ws.on("close", () => {
+//         console.log("Client disconnected. Cleaning up WebSocket connection.");
+//         clearInterval(intervalId);
+//       });
+//     })
+//     .catch((err) => {
+//       console.error("Database query failed:", err);
+//       ws.send(JSON.stringify({ error: "Database query failed" }));
+//       ws.close();
+//     });
+// });
+
+
+
+
+// SSE Middleware (Optional - If you prefer to use a middleware for setting headers)
+function sseMiddleware(req, res, next) {
+  res.sseSetup = () => {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive"
     });
   };
 
-  // Function to send data over WebSocket
-  const sendData = (data) => {
-    ws.send(JSON.stringify(data));
+  res.sseSend = (data) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`); // Ensure data is serialized as JSON
   };
 
-  // Query and send initial data
-  getSensorData()
-    .then((data) => {
-      sendData(data); // Send initial data
+  next();
+}
 
-      // Set interval to send updated data every 5 seconds
-      const intervalId = setInterval(() => {
-        getSensorData()
-          .then((data) => {
-            sendData(data);
-          })
-          .catch((err) => {
-            console.error(err);
-            clearInterval(intervalId);
-            ws.close();
-          });
-      }, 5000);
+app.use(sseMiddleware);
 
-      // Cleanup when the WebSocket connection is closed
-      ws.on("close", () => {
-        console.log("Client disconnected. Cleaning up WebSocket connection.");
-        clearInterval(intervalId);
-      });
-    })
-    .catch((err) => {
-      console.error("Database query failed:", err);
-      ws.send(JSON.stringify({ error: "Database query failed" }));
-      ws.close();
-    });
-});
-
-
-
-
+// SSE Route to stream sensor data
 app.get("/get-latest-sensor-data", (req, res) => {
   const { user_id, sensor_id } = req.query;
 
@@ -166,16 +186,19 @@ app.get("/get-latest-sensor-data", (req, res) => {
   }
 
   // Set up the response for SSE
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.flushHeaders();
+  res.sseSetup();
+  console.log("SSE connection started for user:", user_id, "sensor:", sensor_id);
 
   const tableName = `${user_id}_sensors_data`;
+  let lastSentData = null; // Track the last sent data to avoid sending duplicates
 
   // Function to send data in SSE format
   const sendData = (data) => {
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
+    // Check if the new data differs from the last sent data
+    if (JSON.stringify(data) !== lastSentData) {
+      res.sseSend(data); // Send the data using the sseSend method
+      lastSentData = JSON.stringify(data);  // Store the last sent data
+    }
   };
 
   // Query to get the latest sensor data
@@ -202,25 +225,25 @@ app.get("/get-latest-sensor-data", (req, res) => {
   // Query and send the initial data
   getSensorData()
     .then((data) => {
-      sendData(data);
+      sendData(data); // Send initial data
       // Set interval to send updated data every 5 seconds
       const intervalId = setInterval(() => {
         getSensorData()
           .then((data) => {
-            sendData(data);
+            sendData(data); // Send updated data if there is new data
           })
           .catch((err) => {
-            console.error(err);
-            clearInterval(intervalId);
-            res.end();
+            console.error("Error fetching sensor data:", err);
+            clearInterval(intervalId); // Stop the interval on error
+            res.end(); // Close the response on error
           });
       }, 5000);
 
       // Cleanup when the connection is closed or client stops listening
       req.on("close", () => {
         console.log("Client disconnected. Cleaning up SSE connection.");
-        clearInterval(intervalId);
-        res.end();
+        clearInterval(intervalId); // Clear the interval on disconnect
+        res.end(); // End the SSE connection
       });
     })
     .catch((err) => {
@@ -229,6 +252,8 @@ app.get("/get-latest-sensor-data", (req, res) => {
       res.end();
     });
 });
+
+
 
 
 

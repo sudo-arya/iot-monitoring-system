@@ -55,7 +55,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   // Handle selection of sensor type and set up SSE connection
   const handleSensorTypeSelect = (sensorType, sensorId) => {
     if (sseSourceRef.current[sensorType]) {
-      sseSourceRef.current[sensorType].close(); // Close any existing SSE connection for the selected sensor type
+      sseSourceRef.current[sensorType].close(); // Close any existing SSE connection
       console.log(`Previous SSE connection for ${sensorType} closed.`);
     }
 
@@ -69,20 +69,20 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
     );
 
     eventSource.onmessage = function (event) {
-      console.log("Received SSE message:", event.data); // Log the entire event
-      const newData = JSON.parse(event.data);
+      try {
+        const data = JSON.parse(event.data); // Ensure this parses the data correctly
+        console.log("Received data:", data);
 
-      if (newData && Array.isArray(newData)) {
-        console.log("Parsed new data:", newData);
+        // Process and update the sensor data state
         setSensorData((prevData) => {
-          const updatedData = prevData[sensorType] || [];
+          const updatedData = prevData[selectedSensorType] || [];
           return {
             ...prevData,
-            [sensorType]: [...updatedData, ...newData],
+            [selectedSensorType]: [...updatedData, ...data],
           };
         });
-      } else {
-        console.error("Received data is not in the expected format:", newData);
+      } catch (error) {
+        console.error("Error parsing SSE data:", error);
       }
     };
 
@@ -91,20 +91,11 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
       eventSource.close();
     };
 
-    sseSourceRef.current[sensorType] = eventSource; // Store the SSE connection for cleanup
+    // Store the SSE connection for cleanup
+    sseSourceRef.current[sensorType] = eventSource;
     console.log("SSE connection set for sensorId:", sensorId);
   };
-
-  // Effect to fetch data when the location changes
-  useEffect(() => {
-    if (selectedLocation) {
-      console.log(
-        "Location selected, fetching data for piId:",
-        selectedLocation.piId
-      );
-      fetchSensorData(selectedLocation.piId);
-    }
-  }, [selectedLocation, fetchSensorData]);
+ 
 
   // Cleanup SSE connection when the component unmounts
   useEffect(() => {
@@ -116,6 +107,17 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
       });
     };
   }, []);
+
+  // Effect to fetch data when the location changes
+  useEffect(() => {
+    if (selectedLocation) {
+      console.log(
+        "Location selected, fetching data for piId:",
+        selectedLocation.piId
+      );
+      fetchSensorData(selectedLocation.piId);
+    }
+  }, [selectedLocation, fetchSensorData]);
 
   // List the sensor types for the selected Pi ID
   const sensorTypes = Object.keys(sensorData);
