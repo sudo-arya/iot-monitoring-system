@@ -7,12 +7,12 @@ import React, {
 } from "react";
 import "event-source-polyfill";
 
-
 const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const [sensorData, setSensorData] = useState({});
   const [selectedSensorType, setSelectedSensorType] = useState("");
   const [loading, setLoading] = useState(true);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  // eslint-disable-next-line
+  const [isDataLoaded, setIsDataLoaded] = useState(false); // State for tracking data load
 
   const sseSourceRef = useRef({});
   const retryTimeoutRef = useRef({}); // Ref to store retry timeouts
@@ -39,7 +39,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
             return acc;
           }, {});
           setSensorData(formattedData);
-          setIsDataLoaded(true);
+          setIsDataLoaded(true); // Set to true once data is loaded
         })
         .catch((error) => console.error("Error fetching sensor data:", error))
         .finally(() => setLoading(false));
@@ -62,7 +62,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
 
       // Create a new EventSource connection
       const eventSource = new EventSource(
-        `/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
+        `http://localhost:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
       );
 
       // Event: Connection opened
@@ -117,14 +117,18 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
     establishSSEConnection();
   };
 
-
-
   useEffect(() => {
+    // Copy ref values to local variables
+    const sseSource = sseSourceRef.current;
+    const retryTimeouts = Object.values(retryTimeoutRef.current);
+
+    // Cleanup function
     return () => {
-      Object.values(sseSourceRef.current).forEach((source) => source.close());
-      Object.values(retryTimeoutRef.current).forEach((timeout) =>
-        clearTimeout(timeout)
-      );
+      // Clear timeouts
+      retryTimeouts.forEach((timeout) => clearTimeout(timeout));
+
+      // Close SSE connections
+      Object.values(sseSource).forEach((source) => source.close());
     };
   }, []);
 

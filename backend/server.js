@@ -5,10 +5,21 @@ require("dotenv").config(); // Load environment variables
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 // const WebSocket = require("ws");
+const cors = require("cors");
 
 
 // Initialize Express
 const app = express();
+// Enable CORS for all routes
+app.use(cors());
+
+// If you want to restrict CORS to only certain origins, you can specify that:
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Allow requests only from the React app
+    methods: ["GET", "POST"], // Specify allowed methods if needed
+  })
+);
 app.use(bodyParser.json()); // To handle JSON request body
 const JWT_SECRET = `${process.env.JWT_SECRET_KEY}`;
 
