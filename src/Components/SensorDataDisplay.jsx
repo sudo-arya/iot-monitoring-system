@@ -134,6 +134,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
           borderColor: "rgba(75, 192, 192, 1)",
           backgroundColor: "rgba(75, 192, 192, 0.2)",
           borderWidth: 2,
+          tension: 0.5, // Adjust the value for a more or less curved line
         },
       ],
     };
@@ -179,7 +180,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
                     sensorData[sensorType][0]?.sensor_id // Ensure you always pass a valid sensorId
                   )
                 }
-                className={`flex xl:w-fit py-2 px-1 xl:px-3 justify-center xl:hover:bg-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl 
+                className={`flex xl:w-fit py-2 px-1 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl 
         ${
           selectedSensorType === sensorType
             ? "bg-gradient-to-r from-blue-500 to-indigo-500"
@@ -198,10 +199,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
               <h3 className="text-base font-bold text-center">
                 Sensor Graph for {selectedSensorType} ({unit}):
               </h3>
-              <Line
-                data={chartData}
-                options={chartOptions}
-              />
+              <Line data={chartData} options={chartOptions} />
             </div>
           )}
         </div>

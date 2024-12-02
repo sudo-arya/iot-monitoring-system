@@ -162,7 +162,7 @@ const WeatherForecastComponent = ({ locations }) => {
     <div className="xl:w-full w-[calc(100vw-6rem)] bg-white px-6 xl:px-0 py-4 text-gray-700">
       <div className="flex xl:text-center xl:justify-center items-start justify-start flex-row xl:flex-row text-white font-semibold text-base">
         <div
-          className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
+          className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
             viewMode === "hourly"
               ? "bg-gradient-to-r from-blue-500 to-indigo-500"
               : "bg-gray-400"
@@ -172,7 +172,7 @@ const WeatherForecastComponent = ({ locations }) => {
           <button>Today's Forecast</button>
         </div>
         <div
-          className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
+          className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
             viewMode === "weekly"
               ? "bg-gradient-to-r from-blue-500 to-indigo-500"
               : "bg-gray-400"
