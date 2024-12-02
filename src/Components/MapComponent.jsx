@@ -121,7 +121,7 @@ const MapComponent = ({ locations, setSelectedLocation }) => {
   };
 
   return (
-    <div className="xl:h-[calc(100vh-34rem)] h-[calc(100vh-24rem)] relative xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)] bg-white border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg text-gray-700 z-10">
+    <div className="xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] relative xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)] bg-white border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg text-gray-700 z-10">
       <MapContainer
         center={center}
         zoom={defaultZoom}

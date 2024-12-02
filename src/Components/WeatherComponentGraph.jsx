@@ -23,7 +23,7 @@ ChartJS.register(
   Legend
 );
 
-const WeatherForecastComponent = () => {
+const WeatherComponentGraph = () => {
   const [forecastData, setForecastData] = useState(null);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState("hourly"); // "hourly" or "weekly"
@@ -338,4 +338,4 @@ const WeatherForecastComponent = () => {
   );
 };
 
-export default WeatherForecastComponent;
+export default WeatherComponentGraph;

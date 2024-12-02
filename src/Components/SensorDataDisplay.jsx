@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import "event-source-polyfill";
-import { Line } from "react-chartjs-2";
+import { Line,Bar,Radar,Doughnut,Scatter } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   LineElement,
@@ -31,9 +31,11 @@ ChartJS.register(
 
 const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const [sensorData, setSensorData] = useState({});
+  const [sseSensorData, setSseSensorData] = useState({}); // New state for SSE data
   const [selectedSensorType, setSelectedSensorType] = useState("");
   const [loading, setLoading] = useState(true);
   const sseSourceRef = useRef(null);
+  const [viewMode, setViewMode] = useState("hourly"); // Default viewMode is "hourly"
 
   const fetchSensorData = useCallback(
     (piId) => {
@@ -77,7 +79,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
     eventSource.onmessage = (event) => {
       try {
         const newData = JSON.parse(event.data);
-        setSensorData((prevData) => ({
+        setSseSensorData((prevData) => ({
           ...prevData,
           [sensorType]: newData.map((sensorInfo) => ({
             ...sensorInfo,
@@ -97,7 +99,6 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
     setSelectedSensorType(sensorType);
   };
 
-
   useEffect(() => {
     if (selectedLocation) {
       fetchSensorData(selectedLocation.piId);
@@ -115,11 +116,14 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const sensorTypes = useMemo(() => Object.keys(sensorData), [sensorData]);
 
   const chartData = useMemo(() => {
-    if (!selectedSensorType || !sensorData[selectedSensorType]) {
+    const currentData =
+      sseSensorData[selectedSensorType] || sensorData[selectedSensorType];
+
+    if (!selectedSensorType || !currentData) {
       return { labels: [], datasets: [] };
     }
 
-    const reversedData = [...sensorData[selectedSensorType]].reverse();
+    const reversedData = [...currentData].reverse();
 
     return {
       labels: reversedData.map((data) => data.timestamp),
@@ -133,7 +137,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
         },
       ],
     };
-  }, [selectedSensorType, sensorData]);
+  }, [selectedSensorType, sensorData, sseSensorData]);
 
   const chartOptions = {
     responsive: true,
@@ -157,47 +161,56 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
     },
   };
 
+  const unit = sensorData[selectedSensorType]?.[0]?.sensor_unit || "";
 
   return (
-    <div className="mt-4 p-4 border-2 border-indigo-500 rounded-3xl shadow-lg">
-      <h2 className="text-xl font-semibold">Sensor Data</h2>
-
+    <div className="mt-6">
       {loading ? (
-        <p>Loading sensor data...</p>
+        <></>
       ) : sensorTypes.length > 0 ? (
-        <>
-          <h3 className="mt-4 text-lg">Select Sensor Type:</h3>
-          <ul>
-            {sensorTypes.map((sensorType) => (
-              <li key={sensorType}>
-                <button
-                  onClick={() =>
-                    handleSensorTypeSelect(
-                      sensorType,
-                      sensorData[sensorType][0]?.sensor_id // Ensure you always pass a valid sensorId
-                    )
-                  }
-                  className="text-blue-500"
-                >
-                  {sensorType}
-                </button>
-              </li>
+        <div className="">
+          <div className="flex xl:text-center xl:justify-center items-start justify-start flex-row xl:flex-row text-white font-semibold text-base">
+            {sensorTypes.map((sensorType, index) => (
+              <button
+                key={sensorType}
+                onClick={() =>
+                  handleSensorTypeSelect(
+                    sensorType,
+                    sensorData[sensorType][0]?.sensor_id // Ensure you always pass a valid sensorId
+                  )
+                }
+                className={`flex xl:w-fit py-2 px-1 xl:px-3 justify-center xl:hover:bg-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl 
+        ${
+          selectedSensorType === sensorType
+            ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+            : "bg-gray-400"
+        }
+        ${index === 0 ? "rounded-l-full" : ""}
+        ${index === sensorTypes.length - 1 ? "rounded-r-full" : ""}`}
+              >
+                {sensorType}
+              </button>
             ))}
-          </ul>
+          </div>
+
           {selectedSensorType && (
-            <div className="mt-4">
-              <h3 className="text-lg font-bold">
-                Sensor Graph for {selectedSensorType}:
+            <div className="mt-4 overflow-x-auto">
+              <h3 className="text-base font-bold text-center">
+                Sensor Graph for {selectedSensorType} ({unit}):
               </h3>
-              <Line data={chartData} options={chartOptions} />
+              <Line
+                data={chartData}
+                options={chartOptions}
+              />
             </div>
           )}
-        </>
+        </div>
       ) : (
         <p>No sensors available for the selected location.</p>
       )}
     </div>
   );
 };
+
 
 export default SensorDataDisplay;
