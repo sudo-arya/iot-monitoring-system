@@ -16,8 +16,11 @@ app.use(cors());
 // If you want to restrict CORS to only certain origins, you can specify that:
 app.use(
   cors({
-    origin: "http://localhost:3000", // Allow requests only from the React app
-    methods: ["GET", "POST"], // Specify allowed methods if needed
+    origin: [
+      "http://localhost:3000", // Allow requests from React app on localhost
+      "http://192.168.1.100:3000", // Replace with your local IP
+    ],
+    methods: ["GET", "POST"], // Specify allowed methods
   })
 );
 app.use(bodyParser.json()); // To handle JSON request body

@@ -74,6 +74,9 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
 
     const eventSource = new EventSource(
       `http://localhost:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
+      // `http://10.145.54.149:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`  wifi connection ip
+
+      // `http://192.168.137.1:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}` local hotspot ip
     );
 
     eventSource.onmessage = (event) => {
