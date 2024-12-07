@@ -227,7 +227,7 @@ app.get("/get-latest-sensor-data", async (req, res) => {
         FROM ??
         WHERE sensor_id = ?
         ORDER BY timestamp DESC
-        LIMIT 9
+        LIMIT 55
       `;
 
       db.query(query, [tableName, sensor_id], (err, results) => {
