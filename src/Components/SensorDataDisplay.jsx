@@ -16,7 +16,9 @@ import {
   CategoryScale,
   Tooltip,
   TimeScale,
+  Filler,
 } from "chart.js";
+import zoomPlugin from "chartjs-plugin-zoom";
 import "chartjs-adapter-date-fns";
 
 ChartJS.register(
@@ -26,16 +28,17 @@ ChartJS.register(
   Title,
   CategoryScale,
   Tooltip,
-  TimeScale
+  TimeScale,
+  Filler,
+  zoomPlugin
 );
 
 const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const [sensorData, setSensorData] = useState({});
-  const [sseSensorData, setSseSensorData] = useState({}); // New state for SSE data
+  const [sseSensorData, setSseSensorData] = useState({});
   const [selectedSensorType, setSelectedSensorType] = useState("");
   const [loading, setLoading] = useState(true);
   const sseSourceRef = useRef(null);
-  // const [viewMode, setViewMode] = useState("hourly"); // Default viewMode is "hourly"
 
   const fetchSensorData = useCallback(
     (piId) => {
@@ -58,13 +61,10 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   );
 
   const handleSensorTypeSelect = (sensorType, sensorId) => {
-    // Ensure that sensorId is available
     if (!sensorId) {
       console.error("Sensor ID is undefined");
       return;
     }
-
-    // Avoid unnecessary reconnections if the sensor type is already selected
     if (sensorType === selectedSensorType) return;
 
     if (sseSourceRef.current) {
@@ -74,9 +74,6 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
 
     const eventSource = new EventSource(
       `http://localhost:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
-      // `http://10.145.54.149:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`  
-      // wifi connection ip
-      // `http://192.168.137.1:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}` local hotspot ip
     );
 
     eventSource.onmessage = (event) => {
@@ -86,7 +83,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
           ...prevData,
           [sensorType]: newData.map((sensorInfo) => ({
             ...sensorInfo,
-            timestamp: new Date(sensorInfo.timestamp), // Ensure timestamp is a Date object
+            timestamp: new Date(sensorInfo.timestamp),
           })),
         }));
       } catch (error) {
@@ -137,7 +134,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
           borderColor: "rgba(75, 192, 192, 1)",
           backgroundColor: "rgba(75, 192, 192, 0.2)",
           borderWidth: 2,
-          tension: 0.5, // Adjust the value for a more or less curved line
+          tension: 0.5,
         },
       ],
     };
@@ -145,22 +142,40 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     scales: {
       x: {
         type: "time",
         time: {
-          unit: "hour", // Choose an appropriate time unit (e.g., second, minute, hour, day)
+          unit: "minute",
           displayFormats: {
-            hour: "HH:mm", // Customize the time format as needed
+            minute: "HH:mm",
           },
         },
         ticks: {
-          autoSkip: true, // Skip overlapping ticks
-          maxTicksLimit: 10, // Limit the number of ticks
+          autoSkip: false,
+          maxTicksLimit: 10,
         },
       },
       y: {
         beginAtZero: true,
+      },
+    },
+    plugins: {
+      zoom: {
+        zoom: {
+          wheel: {
+            enabled: false, // Disable zoom via mouse wheel
+          },
+          pinch: {
+            enabled: false, // Disable zoom via pinch gesture
+          },
+          mode: "x",
+        },
+        pan: {
+          enabled: true,
+          mode: "x",
+        },
       },
     },
   };
@@ -168,11 +183,11 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const unit = sensorData[selectedSensorType]?.[0]?.sensor_unit || "";
 
   return (
-    <div className="mt-6  relative xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]">
+    <div className="mt-6">
       {loading ? (
-        <></>
+        <p>Loading...</p>
       ) : sensorTypes.length > 0 ? (
-        <div className="">
+        <div>
           <div className="flex xl:text-center xl:justify-center items-start justify-start flex-row xl:flex-row text-white font-semibold text-base">
             {sensorTypes.map((sensorType, index) => (
               <button
@@ -180,7 +195,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
                 onClick={() =>
                   handleSensorTypeSelect(
                     sensorType,
-                    sensorData[sensorType][0]?.sensor_id // Ensure you always pass a valid sensorId
+                    sensorData[sensorType][0]?.sensor_id
                   )
                 }
                 className={`flex xl:w-fit py-2 px-1 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl 
@@ -196,14 +211,15 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
               </button>
             ))}
           </div>
-
           {selectedSensorType && (
-            <div className="mt-4 overflow-x-auto">
-              <h3 className="text-base font-bold text-center">
+            <>
+              <h3>
                 Sensor Graph for {selectedSensorType} ({unit}):
               </h3>
-              <Line data={chartData} options={chartOptions} />
-            </div>
+              <div className="mt-4 xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] overflow-x-auto">
+                <Line data={chartData} options={chartOptions} className="" />
+              </div>
+            </>
           )}
         </div>
       ) : (
@@ -212,6 +228,5 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
     </div>
   );
 };
-
 
 export default SensorDataDisplay;
