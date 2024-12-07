@@ -1,5 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  Tooltip,
+  useMap,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -120,6 +127,30 @@ const MapComponent = ({ locations, setSelectedLocation }) => {
     setPopupPosition(null); // Close the popup
   };
 
+  const ResetViewButton = ({ center, zoom }) => {
+    const map = useMap();
+
+    const handleResetView = () => {
+      map.setView(center, zoom); // Reset the map view to the provided center and zoom
+    };
+
+    return (
+      <button
+        onClick={handleResetView}
+        className="absolute left-3 top-[6.5rem] bg-white p-1.5 rounded-sm shadow-lg hover:bg-gray-100 focus:outline-none z-[1000]"
+        style={{
+          zIndex: 1000, // Ensure it stays above the map layers
+        }}
+      >
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/4024/4024085.png"
+          alt="Reset View"
+          className="w-5 h-5"
+        />
+      </button>
+    );
+  };
+
   return (
     <div className="xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] relative xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)] bg-white border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg text-gray-700 z-10">
       <MapContainer
@@ -130,7 +161,13 @@ const MapComponent = ({ locations, setSelectedLocation }) => {
         onClick={handleMapClick} // Handle map clicks
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          // url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" // default
+          // url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" //green tint one
+          // url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" //black
+          // url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" //artistic
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" // genuine with satellite view
+          // url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"  // cartonistic
+          // url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" // google maps
           attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         />
         {locations.map((location, index) => (
@@ -151,6 +188,7 @@ const MapComponent = ({ locations, setSelectedLocation }) => {
             </div>
           </Popup>
         )}
+        <ResetViewButton center={center} zoom={defaultZoom} />
       </MapContainer>
     </div>
   );

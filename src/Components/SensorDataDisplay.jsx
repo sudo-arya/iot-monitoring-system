@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import "event-source-polyfill";
-import { Line,Bar,Radar,Doughnut,Scatter } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   LineElement,
@@ -35,7 +35,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const [selectedSensorType, setSelectedSensorType] = useState("");
   const [loading, setLoading] = useState(true);
   const sseSourceRef = useRef(null);
-  const [viewMode, setViewMode] = useState("hourly"); // Default viewMode is "hourly"
+  // const [viewMode, setViewMode] = useState("hourly"); // Default viewMode is "hourly"
 
   const fetchSensorData = useCallback(
     (piId) => {
@@ -74,8 +74,8 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
 
     const eventSource = new EventSource(
       `http://localhost:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
-      // `http://10.145.54.149:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`  wifi connection ip
-
+      // `http://10.145.54.149:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`  
+      // wifi connection ip
       // `http://192.168.137.1:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}` local hotspot ip
     );
 
@@ -168,7 +168,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const unit = sensorData[selectedSensorType]?.[0]?.sensor_unit || "";
 
   return (
-    <div className="mt-6">
+    <div className="mt-6  relative xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]">
       {loading ? (
         <></>
       ) : sensorTypes.length > 0 ? (
