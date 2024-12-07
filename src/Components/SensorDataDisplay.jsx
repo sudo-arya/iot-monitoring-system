@@ -38,6 +38,9 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const [sseSensorData, setSseSensorData] = useState({});
   const [selectedSensorType, setSelectedSensorType] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showLatest, setShowLatest] = useState(true); // Track whether user is at the latest data
+  const [graphKey, setGraphKey] = useState(0); // Key for unmounting and re-rendering graph
+
   const sseSourceRef = useRef(null);
 
   const fetchSensorData = useCallback(
@@ -140,50 +143,85 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
     };
   }, [selectedSensorType, sensorData, sseSensorData]);
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        type: "time",
-        time: {
-          unit: "minute",
-          displayFormats: {
-            minute: "HH:mm",
+  const chartOptions = useMemo(() => {
+    const currentData =
+      sseSensorData[selectedSensorType] || sensorData[selectedSensorType];
+
+    let minTime = null;
+    let maxTime = null;
+    let latestTime = null;
+
+    if (currentData && currentData.length > 0) {
+      minTime = Math.min(
+        ...currentData.map((item) => new Date(item.timestamp).getTime())
+      );
+      maxTime = Math.max(
+        ...currentData.map((item) => new Date(item.timestamp).getTime())
+      );
+      latestTime = maxTime; // Latest data timestamp
+    }
+
+    const range = maxTime && minTime ? maxTime - minTime : 0;
+    const leftPadding = range * 0.07; // Adjust padding on the left
+    const rightPadding = range * 0.03; // Adjust padding on the right
+
+    const zoomMin = latestTime ? latestTime - leftPadding : minTime;
+    const zoomMax = latestTime ? latestTime + rightPadding : maxTime;
+
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          type: "time",
+          time: {
+            unit: "minute",
+            displayFormats: {
+              minute: "HH:mm",
+            },
           },
+          min: zoomMin,
+          max: zoomMax,
         },
-        ticks: {
-          autoSkip: false,
-          maxTicksLimit: 10,
+        y: {
+          beginAtZero: true,
         },
       },
-      y: {
-        beginAtZero: true,
-      },
-    },
-    plugins: {
-      zoom: {
+      plugins: {
         zoom: {
-          wheel: {
-            enabled: false, // Disable zoom via mouse wheel
+          pan: {
+            enabled: true,
+            mode: "x",
           },
-          pinch: {
-            enabled: false, // Disable zoom via pinch gesture
+          zoom: {
+            wheel: {
+              enabled: true,
+            },
+            pinch: {
+              enabled: true,
+            },
+            mode: "x",
           },
-          mode: "x",
-        },
-        pan: {
-          enabled: true,
-          mode: "x",
         },
       },
-    },
+    };
+  }, [selectedSensorType, sseSensorData, sensorData, showLatest]);
+
+
+
+  const latestDataPoint =
+    sseSensorData[selectedSensorType]?.[0] ||
+    sensorData[selectedSensorType]?.[
+      sensorData[selectedSensorType]?.length - 1
+    ];
+  const handleGoToLatest = () => {
+    setShowLatest(true); // Enable centering latest data
+    setGraphKey((prevKey) => prevKey + 1); // Re-render graph
   };
 
-  const unit = sensorData[selectedSensorType]?.[0]?.sensor_unit || "";
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] relative xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]">
       {loading ? (
         <p>Loading...</p>
       ) : sensorTypes.length > 0 ? (
@@ -214,10 +252,25 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
           {selectedSensorType && (
             <>
               <h3>
-                Sensor Graph for {selectedSensorType} ({unit}):
+                Sensor Graph for {selectedSensorType} (
+                {sensorData[selectedSensorType]?.[0]?.sensor_unit || ""}):
               </h3>
+
+              <div className="mt-4">
+                <button
+                  onClick={handleGoToLatest}
+                  className="bg-white text-gray-600 font-semibold hover:bg-gray-600 hover:text-white border-2 border-gray-400 py-2 px-4 rounded mt-2"
+                >
+                  Go to Latest Data
+                </button>
+              </div>
               <div className="mt-4 xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] overflow-x-auto">
-                <Line data={chartData} options={chartOptions} className="" />
+                <Line
+                  key={graphKey} // Key for re-rendering
+                  data={chartData}
+                  options={chartOptions}
+                  className=""
+                />
               </div>
             </>
           )}

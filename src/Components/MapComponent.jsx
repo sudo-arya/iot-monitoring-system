@@ -157,15 +157,15 @@ const MapComponent = ({ locations, setSelectedLocation }) => {
         center={center}
         zoom={defaultZoom}
         style={{ height: "100%", width: "100%" }}
-        className="w-full h-full rounded-3xl"
+        className="w-full h-full rounded-[1.4rem]"
         onClick={handleMapClick} // Handle map clicks
       >
         <TileLayer
           // url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" // default
-          // url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" //green tint one
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" //green tint one
           // url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" //black
           // url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" //artistic
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" // genuine with satellite view
+          // url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" // genuine with satellite view
           // url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"  // cartonistic
           // url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" // google maps
           attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'

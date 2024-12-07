@@ -159,7 +159,7 @@ const startRandomDataGeneration = () => {
     setInterval(() => {
       const randomSensor = getRandomSensor(sensor.sensor_id); // Ensure we fetch the correct sensor with its min and max values
       insertSensorData(randomSensor);
-    }, Math.random() * (15000 - 7000) + 7000); // Random interval between 7 to 15 seconds for each sensor
+    }, Math.random() * (60000 - 30000) + 7000); // Random interval between 7 to 15 seconds for each sensor
   });
 };
 
