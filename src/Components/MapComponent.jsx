@@ -137,7 +137,7 @@ const MapComponent = ({ locations, setSelectedLocation }) => {
     return (
       <button
         onClick={handleResetView}
-        className="absolute left-3 top-[6.5rem] bg-white p-1.5 rounded-sm shadow-lg hover:bg-gray-100 focus:outline-none z-[1000]"
+        className="absolute left-3 top-[6.5rem] bg-white p-1.5 rounded-md shadow-lg hover:bg-gray-100 border-2 border-gray-400 border-opacity-50 focus:outline-none z-[1000]"
         style={{
           zIndex: 1000, // Ensure it stays above the map layers
         }}
@@ -216,7 +216,7 @@ const MapPage = ({ locations }) => {
         {selectedLocation && (
           <div className="p-4 mt-4 bg-white border rounded-md shadow-md">
             <h3 className="text-xl font-semibold">Selected Location</h3>
-            
+
             <p>
               <strong>Location:</strong> {selectedLocation.piLocation}
             </p>

@@ -20,7 +20,8 @@ import {
 } from "chart.js";
 import zoomPlugin from "chartjs-plugin-zoom";
 import "chartjs-adapter-date-fns";
-import ChartDataLabels from "chartjs-plugin-datalabels"; // Move this import to the top
+import annotationPlugin from "chartjs-plugin-annotation";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 
 ChartJS.register(
   LineElement,
@@ -32,7 +33,8 @@ ChartJS.register(
   TimeScale,
   Filler,
   zoomPlugin,
-  ChartDataLabels // Register the plugin here
+  annotationPlugin,
+  ChartDataLabels
 );
 
 
@@ -46,6 +48,8 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const [graphKey, setGraphKey] = useState(0); // Key for unmounting and re-rendering graph
 
   const sseSourceRef = useRef(null);
+  const chartRef = useRef(null); // Reference for the Chart.js instance
+
 
   const fetchSensorData = useCallback(
     (piId) => {
@@ -234,7 +238,19 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
 
 
 
+  const handleZoomIn = () => {
+    const chart = chartRef.current;
+    if (chart) {
+      chart.zoom(1.4);
+    }
+  };
 
+  const handleZoomOut = () => {
+    const chart = chartRef.current;
+    if (chart) {
+      chart.zoom(0.4);
+    }
+  };
 
 
 
@@ -280,27 +296,69 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
           </div>
           {selectedSensorType && (
             <>
-              <h3>
+
+
+
+              <div className="mt-2 xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] overflow-x-auto relative">
+                 {/* Graph with overlay buttons */}
+                 <div className="absolute top-4 right-4 z-10 flex">
+                 <button
+                    onClick={handleZoomIn}
+                    className=" text-black px-3 py-2 bg-white  rounded-s-full shadow-lg hover:bg-gray-100 border-2 border-gray-400 border-opacity-50 focus:outline-none z-[1000]"
+                  >
+                    {/* Zoom Out */}
+                    <img
+          src="https://cdn-icons-png.flaticon.com/512/20/20183.png"
+          alt="Reset View"
+          className="w-3 h-3 opacity-70"
+        />
+                  </button>
+
+                  <button
+                    onClick={handleZoomOut}
+                    className=" text-black px-3 py-2 bg-white  rounded-e-full shadow-lg hover:bg-gray-100 border-2 border-gray-400 border-opacity-50 focus:outline-none z-[1000]"
+                  >
+                    {/* Zoom Out */}
+                    <img
+          src="https://cdn-icons-png.flaticon.com/512/43/43625.png"
+          alt="Reset View"
+          className="w-3 h-3 opacity-70"
+        />
+                  </button>
+
+                  <button
+                  onClick={handleGoToLatest}
+                  className=" text-black px-3 py-2 bg-white  rounded-e-full rounded-s-full ml-3 shadow-lg hover:bg-gray-100 border-2 border-gray-400 border-opacity-50 focus:outline-none z-[1000]"
+                  >
+                    {/* Zoom Out */}
+                    <img
+          src="https://cdn-icons-png.flaticon.com/512/3031/3031710.png"
+          alt="Reset View"
+          className="w-3 h-3 opacity-70"
+        />
+                  </button>
+                </div>
+                <Line
+                  key={graphKey} // Key for re-rendering
+                  data={chartData}
+                  options={chartOptions}
+                  className=""
+                  ref={chartRef} // Attach the ref to the chart
+                />
+              </div>
+              <h3 className="text-center font-semibold mt-1">
                 Sensor Graph for {selectedSensorType} (
                 {sensorData[selectedSensorType]?.[0]?.sensor_unit || ""}):
               </h3>
 
-              <div className="mt-4">
+              {/* <div className="mt-4">
                 <button
                   onClick={handleGoToLatest}
                   className="bg-white text-gray-600 font-semibold hover:bg-gray-600 hover:text-white border-2 border-gray-400 py-2 px-4 rounded mt-2"
                 >
                   Go to Latest Data
                 </button>
-              </div>
-              <div className="mt-4 xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] overflow-x-auto">
-                <Line
-                  key={graphKey} // Key for re-rendering
-                  data={chartData}
-                  options={chartOptions}
-                  className=""
-                />
-              </div>
+              </div> */}
             </>
           )}
         </div>

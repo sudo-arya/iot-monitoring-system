@@ -334,7 +334,7 @@ app.post("/login", (req, res) => {
     if (user.status !== "allowed") {
       // Log failed login attempt (status not allowed)
       const logQuery = `
-      INSERT INTO log_data (log_type, log_message, timestamp) 
+      INSERT INTO log_data (log_type, log_message, timestamp)
       VALUES (?, ?, NOW())
       `;
       const logMessage = `Login not allowed for email (${email}), User ID: ${user.user_id}`;
@@ -357,7 +357,7 @@ app.post("/login", (req, res) => {
     if (!isMatch) {
       // Log failed login attempt (invalid password)
       const logQuery = `
-      INSERT INTO log_data (log_type, log_message, timestamp) 
+      INSERT INTO log_data (log_type, log_message, timestamp)
       VALUES (?, ?, NOW())
       `;
       const logMessage = `Failed login attempt: Incorrect password for email (${email}), User ID: ${user.user_id}`;
@@ -399,7 +399,7 @@ app.post("/login", (req, res) => {
       // console.log(locationData);
       // Create log entry in the logs table
       const logQuery = `
-      INSERT INTO log_data (log_type, log_message, timestamp) 
+      INSERT INTO log_data (log_type, log_message, timestamp)
       VALUES (?, ?, NOW())
     `;
       const logMessage = `User logged in: ID=${user.user_id}, Name=${user.user_name}, Role=${user.role}`;
