@@ -20,6 +20,7 @@ import {
 } from "chart.js";
 import zoomPlugin from "chartjs-plugin-zoom";
 import "chartjs-adapter-date-fns";
+import ChartDataLabels from "chartjs-plugin-datalabels"; // Move this import to the top
 
 ChartJS.register(
   LineElement,
@@ -30,8 +31,11 @@ ChartJS.register(
   Tooltip,
   TimeScale,
   Filler,
-  zoomPlugin
+  zoomPlugin,
+  ChartDataLabels // Register the plugin here
 );
+
+
 
 const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const [sensorData, setSensorData] = useState({});
@@ -150,6 +154,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
     let minTime = null;
     let maxTime = null;
     let latestTime = null;
+    let maxYValue = 0;
 
     if (currentData && currentData.length > 0) {
       minTime = Math.min(
@@ -158,15 +163,18 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
       maxTime = Math.max(
         ...currentData.map((item) => new Date(item.timestamp).getTime())
       );
-      latestTime = maxTime; // Latest data timestamp
+      latestTime = maxTime;
+      maxYValue = Math.max(...currentData.map((item) => item.sensor_value));
     }
 
     const range = maxTime && minTime ? maxTime - minTime : 0;
-    const leftPadding = range * 0.07; // Adjust padding on the left
-    const rightPadding = range * 0.03; // Adjust padding on the right
+    const leftPadding = range * 0.02; // Adjust padding on the left
+    const rightPadding = range * 0.002; // Adjust padding on the right
 
     const zoomMin = latestTime ? latestTime - leftPadding : minTime;
     const zoomMax = latestTime ? latestTime + rightPadding : maxTime;
+
+    const suggestedStepSize = Math.ceil(range / (24 * 60 * 60 * 1000)); // Default to 1 day for very large ranges
 
     return {
       responsive: true,
@@ -176,6 +184,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
           type: "time",
           time: {
             unit: "minute",
+            stepSize: suggestedStepSize > 1 ? suggestedStepSize : 1, // Adjust stepSize dynamically
             displayFormats: {
               minute: "HH:mm",
             },
@@ -185,6 +194,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
         },
         y: {
           beginAtZero: true,
+          suggestedMax: maxYValue * 1.1, // Add a 10% buffer to the maximum value
         },
       },
       plugins: {
@@ -201,11 +211,30 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
               enabled: true,
             },
             mode: "x",
+            limits: {
+              x: {
+                min: minTime,
+                max: maxTime,
+              },
+            },
           },
+        },
+        datalabels: {
+          display: true,
+          align: "top",
+          formatter: (value) => value.toFixed(1),
+          font: {
+            weight: "bold",
+          },
+          color: "rgba(75, 192, 192, 1)",
         },
       },
     };
   }, [selectedSensorType, sseSensorData, sensorData, showLatest]);
+
+
+
+
 
 
 
@@ -236,7 +265,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
                     sensorData[sensorType][0]?.sensor_id
                   )
                 }
-                className={`flex xl:w-fit py-2 px-1 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl 
+                className={`flex xl:w-fit py-2 px-1 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl
         ${
           selectedSensorType === sensorType
             ? "bg-gradient-to-r from-blue-500 to-indigo-500"
