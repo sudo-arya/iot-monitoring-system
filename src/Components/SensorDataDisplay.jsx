@@ -46,9 +46,24 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const [loading, setLoading] = useState(true);
   const [showLatest, setShowLatest] = useState(true); // Track whether user is at the latest data
   const [graphKey, setGraphKey] = useState(0); // Key for unmounting and re-rendering graph
+  const [isMobile, setIsMobile] = useState(false);
+
 
   const sseSourceRef = useRef(null);
   const chartRef = useRef(null); // Reference for the Chart.js instance
+
+
+// Detect window size on mount and update state
+useEffect(() => {
+  const handleResize = () => {
+    setIsMobile(window.innerWidth <= 768); // You can adjust the breakpoint as needed
+  };
+
+  handleResize(); // Initial check
+
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
 
 
   const fetchSensorData = useCallback(
@@ -84,7 +99,8 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
     }
 
     const eventSource = new EventSource(
-      `http://localhost:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
+      // `http://localhost:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`,
+      `http://192.168.137.1:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
     );
 
     eventSource.onmessage = (event) => {
@@ -234,7 +250,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
         },
       },
     };
-  }, [selectedSensorType, sseSensorData, sensorData, showLatest]);
+  }, [selectedSensorType, sseSensorData, sensorData, showLatest, isMobile]);
 
 
 
@@ -281,7 +297,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
                     sensorData[sensorType][0]?.sensor_id
                   )
                 }
-                className={`flex xl:w-fit py-2 px-1 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl
+                className={`flex xl:w-fit py-2 px-1 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl 
         ${
           selectedSensorType === sensorType
             ? "bg-gradient-to-r from-blue-500 to-indigo-500"
@@ -306,11 +322,11 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
                     onClick={handleZoomIn}
                     className=" text-black px-3 py-2 bg-white  rounded-s-full shadow-lg hover:bg-gray-100 border-2 border-gray-400 border-opacity-50 focus:outline-none z-[1000]"
                   >
-                    {/* Zoom Out */}
+                    {/* Zoom In */}
                     <img
           src="https://cdn-icons-png.flaticon.com/512/20/20183.png"
           alt="Reset View"
-          className="w-3 h-3 opacity-70"
+          className="xl:w-4 xl:h-4 w-4 h-4 opacity-70"
         />
                   </button>
 
@@ -322,7 +338,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
                     <img
           src="https://cdn-icons-png.flaticon.com/512/43/43625.png"
           alt="Reset View"
-          className="w-3 h-3 opacity-70"
+          className="xl:w-4 xl:h-4 w-4 h-4 opacity-70"
         />
                   </button>
 
@@ -330,11 +346,11 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
                   onClick={handleGoToLatest}
                   className=" text-black px-3 py-2 bg-white  rounded-e-full rounded-s-full ml-3 shadow-lg hover:bg-gray-100 border-2 border-gray-400 border-opacity-50 focus:outline-none z-[1000]"
                   >
-                    {/* Zoom Out */}
+                    {/* Reset View */}
                     <img
           src="https://cdn-icons-png.flaticon.com/512/3031/3031710.png"
           alt="Reset View"
-          className="w-3 h-3 opacity-70"
+          className="xl:w-4 xl:h-4 w-4 h-4 opacity-70"
         />
                   </button>
                 </div>

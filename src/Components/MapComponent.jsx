@@ -145,7 +145,7 @@ const MapComponent = ({ locations, setSelectedLocation }) => {
         <img
           src="https://cdn-icons-png.flaticon.com/512/4024/4024085.png"
           alt="Reset View"
-          className="w-5 h-5"
+          className="xl:w-4 xl:h-4 w-5 h-5"
         />
       </button>
     );
@@ -157,7 +157,7 @@ const MapComponent = ({ locations, setSelectedLocation }) => {
         center={center}
         zoom={defaultZoom}
         style={{ height: "100%", width: "100%" }}
-        className="w-full h-full rounded-[1.4rem]"
+        className="w-full h-full rounded-[1.4rem] scroll-smooth"
         onClick={handleMapClick} // Handle map clicks
       >
         <TileLayer
