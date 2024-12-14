@@ -99,8 +99,8 @@ useEffect(() => {
     }
 
     const eventSource = new EventSource(
-      // `http://localhost:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`,
-      `http://192.168.137.1:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
+      `http://localhost:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`,
+      // `http://192.168.137.1:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
     );
 
     eventSource.onmessage = (event) => {
@@ -297,7 +297,7 @@ useEffect(() => {
                     sensorData[sensorType][0]?.sensor_id
                   )
                 }
-                className={`flex xl:w-fit py-2 px-1 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl 
+                className={`flex xl:w-fit py-2 px-1 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl
         ${
           selectedSensorType === sensorType
             ? "bg-gradient-to-r from-blue-500 to-indigo-500"

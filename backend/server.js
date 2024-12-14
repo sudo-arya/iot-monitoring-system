@@ -17,8 +17,8 @@ app.use(cors());
 app.use(
   cors({
     origin: [
-      "http://localhost:3000", // Allow requests from React app on localhost
-      "http://192.168.1.100:3000", // Replace with your local IP
+      "http://localhost:3000" // Allow requests from React app on localhost
+      // "http://192.168.1.100:3000", // Replace with your local IP
     ],
     methods: ["GET", "POST"], // Specify allowed methods
   })
