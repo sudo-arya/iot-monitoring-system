@@ -8,6 +8,7 @@ import WeatherForecastComponent from "./WeatherForecastComponent";
 import PiGraph from "./PiGraph";
 // eslint-disable-next-line
 import { MapComponent, MapPage } from "./MapComponent";
+import LatestSensorData from "./LatestSensorData";
 
 
 const Dashboard = () => {
@@ -73,7 +74,7 @@ const Dashboard = () => {
       </div>
       {/* Ensure Sidebar takes full height */}
       {/* Content section */}
-      <div className="absolute h-full my-20 mx-20 flex xl:flex-row flex-col">
+      <div className="absolute h-full my-20 ml-20 flex xl:flex-row flex-col">
         {toastMessage && (
           <div
             className={`toast-top ${toastColor} p-2 px-10 my-20 fixed text-xl rounded-xl xl:right-6 xl:top-2 top-0 right-2 text-green-700 border-green-300 border`}
@@ -90,7 +91,7 @@ const Dashboard = () => {
 
         {/* <h1>Welcome to Dashboard</h1> */}
         {/* <h2>{userId}</h2> */}
-        <div>
+        <div className="">
           <div className="my-2">
             <WeatherComponent locations={locations} />
           </div>
@@ -118,9 +119,9 @@ const Dashboard = () => {
             />{" "}
           </div>
           {/* Target Div to show content based on selected location */}
-          <div className="xl:w-full w-[calc(100vw-6rem)] mt-4 p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg">
+          <div className="xl:w-full w-[calc(100vw-6rem)] mt-4  ">
             {selectedLocation ? (
-              <div>
+              <div className="p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-full">
                 <h2 className="text-xl font-semibold">
                   {selectedLocation.piLocation}
                 </h2>
@@ -132,7 +133,7 @@ const Dashboard = () => {
                 </p>
               </div>
             ) : (
-              <p>Select a location from the map to see details here.</p>
+              <div className="border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-full text-center justify-center items-center flex bg-gray-200 p-4">Select a location from the map to see details here.</div>
             )}
           </div>
           {/* <div className="mt-4 p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg"> */}
@@ -146,7 +147,9 @@ const Dashboard = () => {
         </div>
         <div>
           <div className="my-2">
-            hii
+            {/* hii */}
+            {selectedLocation ? (
+            <LatestSensorData userId={userId} piId={selectedLocation.piId} piName={selectedLocation.piLocation} />):( <div className="overflow-x-auto shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 xl:h-[calc(100vh-40rem)] h-fit relative xl:w-[calc(100vw-84rem)] w-[calc(100vw-6rem)] text-center justify-center items-center flex bg-gray-200">Select a location from the map to see details here.</div>)}
           </div>
         </div>
       </div>

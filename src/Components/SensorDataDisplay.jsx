@@ -188,8 +188,8 @@ useEffect(() => {
     }
 
     const range = maxTime && minTime ? maxTime - minTime : 0;
-    const leftPadding = range * 0.2; // Adjust padding on the left
-    const rightPadding = range * 0.04; // Adjust padding on the right
+    const leftPadding = range * 0.06; // Adjust padding on the left
+    const rightPadding = range * 0.02; // Adjust padding on the right
     // const leftPadding = range * 0.02; // Adjust padding on the left
     // const rightPadding = range * 0.002; // Adjust padding on the right
 
@@ -286,7 +286,7 @@ useEffect(() => {
   return (
     <div className="mt-6 xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] relative xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]">
       {loading ? (
-        <p>Loading...</p>
+        <div className="overflow-x-auto shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 xl:h-[calc(100vh-40rem)] h-[calc(100vh-24rem)] relative xl:w-full w-[calc(100vw-6rem)] text-center justify-center items-center flex bg-gray-200">Select a location from the map to see details here.</div>
       ) : sensorTypes.length > 0 ? (
         <div>
           <div className="flex xl:text-center xl:justify-center items-start justify-start flex-row xl:flex-row text-white font-semibold text-base">
@@ -312,12 +312,15 @@ useEffect(() => {
               </button>
             ))}
           </div>
+          {!selectedSensorType &&(
+            <><div className=" mt-4 overflow-x-auto shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 xl:h-[calc(100vh-45rem)] h-fit relative xl:w-full w-[calc(100vw-6rem)] text-center justify-center items-center flex bg-gray-200">Select a sensor to see its graph.</div></>
+          )}
           {selectedSensorType && (
             <>
 
 
 
-              <div className="mt-2 xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] overflow-x-auto relative">
+              <div className="mt-2 xl:h-[calc(100vh-42rem)] h-fit overflow-x-auto relative">
                  {/* Graph with overlay buttons */}
                  <div className="absolute top-4 right-4 z-10 flex">
                  <button
@@ -360,7 +363,7 @@ useEffect(() => {
                   key={graphKey} // Key for re-rendering
                   data={chartData}
                   options={chartOptions}
-                  className=""
+                  className="h-[calc(100vh-32rem)]"
                   ref={chartRef} // Attach the ref to the chart
                 />
               </div>
@@ -377,6 +380,7 @@ useEffect(() => {
                   Go to Latest Data
                 </button>
               </div> */}
+
             </>
           )}
         </div>

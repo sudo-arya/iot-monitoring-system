@@ -271,6 +271,102 @@ app.get("/get-latest-sensor-data", async (req, res) => {
 });
 
 
+app.get("/get-latest-sensors-for-pi", async (req, res) => {
+  const { user_id, pi_id } = req.query;
+
+  if (!user_id || !pi_id) {
+    return res.status(400).json({ error: "user_id and pi_id are required" });
+  }
+
+  // Set up SSE response
+  res.sseSetup();
+  console.log("SSE connection started for user:", user_id, "pi_id:", pi_id);
+
+  const sensorsTableName = `${user_id}_sensors_table`; // Table for sensor metadata
+  const sensorDataTableName = `${user_id}_sensors_data`; // Table for sensor data
+  let lastSentData = null; // Track the last sent data to avoid duplicates
+
+  // Helper function to send data only if new/updated
+  const sendData = (data) => {
+    const dataString = JSON.stringify(data);
+    if (dataString !== lastSentData) {
+      res.sseSend(data); // Send the data
+      lastSentData = dataString; // Update last sent data
+      // console.log(lastSentData);
+    }
+  };
+
+  // Function to fetch the latest sensor values for the given `pi_id`
+  const getLatestSensorValues = () => {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT
+          st.sensor_id,          -- Sensor ID
+          st.sensor_type,        -- Sensor Type (e.g., temperature, humidity)
+          st.sensor_unit,        -- Unit of measurement (e.g., °C, %)
+          sd.sensor_value,       -- Latest sensor value
+          sd.timestamp,          -- Timestamp of the reading
+          sd.sensor_status       -- Status of the sensor (e.g., active, error)
+        FROM
+          ?? AS st               -- Sensor metadata table
+        INNER JOIN
+          (
+            SELECT sensor_id, MAX(timestamp) AS latest_timestamp
+            FROM ??              -- Sensor data table
+            WHERE pi_id = ?
+            GROUP BY sensor_id   -- Group by sensor to get the latest timestamp
+          ) AS latest_data
+        ON st.sensor_id = latest_data.sensor_id
+        INNER JOIN ?? AS sd      -- Join on sensor data table
+        ON sd.sensor_id = latest_data.sensor_id AND sd.timestamp = latest_data.latest_timestamp
+        WHERE st.pi_id = ?
+        ORDER BY sd.timestamp DESC -- Sort by the most recent readings
+      `;
+
+      db.query(
+        query,
+        [sensorsTableName, sensorDataTableName, pi_id, sensorDataTableName, pi_id],
+        (err, results) => {
+          if (err) {
+            reject(err); // Reject on error
+          } else {
+            resolve(results); // Resolve with query results
+          }
+        }
+      );
+    });
+  };
+
+  try {
+    // Fetch and send initial data
+    const data = await getLatestSensorValues();
+    sendData(data);
+
+    // Set up periodic updates every 5 seconds
+    const intervalId = setInterval(async () => {
+      try {
+        const updatedData = await getLatestSensorValues();
+        sendData(updatedData);
+      } catch (err) {
+        console.error("Error fetching sensor data:", err);
+        clearInterval(intervalId); // Stop updates on error
+        res.end(); // End the SSE connection
+      }
+    }, 5000);
+
+    // Clean up when the client disconnects
+    req.on("close", () => {
+      console.log("Client disconnected. Cleaning up SSE connection.");
+      clearInterval(intervalId);
+      res.end();
+    });
+  } catch (err) {
+    console.error("Error setting up SSE:", err);
+    res.status(500).json({ error: "Database query failed" });
+  }
+});
+
+
 
 
 
