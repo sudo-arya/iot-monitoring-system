@@ -188,10 +188,10 @@ useEffect(() => {
     }
 
     const range = maxTime && minTime ? maxTime - minTime : 0;
-    const leftPadding = range * 0.06; // Adjust padding on the left
-    const rightPadding = range * 0.02; // Adjust padding on the right
-    // const leftPadding = range * 0.02; // Adjust padding on the left
-    // const rightPadding = range * 0.002; // Adjust padding on the right
+    // const leftPadding = range * 0.06; // Adjust padding on the left
+    // const rightPadding = range * 0.02; // Adjust padding on the right
+    const leftPadding = range * 0.02; // Adjust padding on the left
+    const rightPadding = range * 0.002; // Adjust padding on the right
 
     const zoomMin = latestTime ? latestTime - leftPadding : minTime;
     const zoomMax = latestTime ? latestTime + rightPadding : maxTime;
@@ -286,7 +286,7 @@ useEffect(() => {
   return (
     <div className="mt-6 xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] relative xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]">
       {loading ? (
-        <div className="overflow-x-auto shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 xl:h-[calc(100vh-40rem)] h-[calc(100vh-24rem)] relative xl:w-full w-[calc(100vw-6rem)] text-center justify-center items-center flex bg-gray-200">Select a location from the map to see details here.</div>
+        <div className="overflow-x-auto shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 xl:h-[calc(100vh-40rem)] h-[calc(100vh-24rem)] relative xl:w-full w-[calc(100vw-6rem)] text-center justify-center items-center flex bg-gray-200">Select a location from the map to see avaliable sensors.</div>
       ) : sensorTypes.length > 0 ? (
         <div>
           <div className="flex xl:text-center xl:justify-center items-start justify-start flex-row xl:flex-row text-white font-semibold text-base">

@@ -377,7 +377,7 @@ app.get('/get-alerts-for-user', (req, res) => {
   }
 
   // Log when a connection is established
-  console.log(`SSE connection established for user_id: ${user_id}`);
+  console.log(`SSE connection established for user_id: ${user_id} showing alerts`);
 
   // Set headers for SSE
   res.setHeader('Content-Type', 'text/event-stream');
@@ -418,7 +418,7 @@ app.get('/get-alerts-for-user', (req, res) => {
 
   // Log when the SSE connection is closed or disconnected
   req.on('close', () => {
-    console.log(`SSE connection closed for user_id: ${user_id}`);
+    console.log(`SSE connection closed for user_id: ${user_id} for alerts`);
   });
 });
 

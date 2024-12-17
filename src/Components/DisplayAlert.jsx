@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FaCheckCircle, FaExclamationCircle, FaTimesCircle } from 'react-icons/fa'; // Import icons for status
 
 const DisplayAlert = ({ userId }) => {
   const [alerts, setAlerts] = useState([]);
@@ -42,34 +43,46 @@ const DisplayAlert = ({ userId }) => {
     });
   };
 
+  // Function to determine icon based on alert status
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'resolved':
+        return <FaCheckCircle className="text-green-500" />;
+      case 'Warning':
+        return <FaExclamationCircle className="text-yellow-500" />;
+      case 'Critical':
+        return <FaTimesCircle className="text-red-500" />;
+      default:
+        return <FaExclamationCircle className="text-gray-500" />;
+    }
+  };
+
   return (
-    <div className="xl:w-[calc(100vw-84rem)] w-[calc(100vw-6rem)]">
-      <h2 className="text-2xl font-bold mb-4 mt-6">Latest Alerts :-</h2>
-      <div className="overflow-x-auto shadow-lg rounded-lg border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500">
-        <table className="min-w-full divide-y divide-gray-200 bg-white">
-          <thead className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Alert Message</th>
-              <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Timestamp</th>
-              <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {alerts.slice(0, 6).map((alert, index) => ( // Limiting to show 6 alerts
-              <tr key={index} className="hover:bg-gray-100">
-                <td className="px-6 py-4 whitespace-normal break-words text-sm font-medium text-gray-900">
-                  {alert.alert_message}
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-700">
-                  {formatTimestamp(alert.timestamp)} {/* Formatted timestamp */}
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-700">
-                  {alert.alert_status}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="xl:w-[calc(100vw-84rem)] w-[calc(100vw-6rem)] p-">
+      <h2 className="text-3xl font-semibold mb-4 mt-4 text-gray-800">Latest Alerts :-</h2>
+      <div className="overflow-y-auto xl:h-[calc(100vh-40rem)] h-[calc(100vh-24rem)] shadow-lg rounded-lg border border-gray-300 ">
+        {/* Fixed header */}
+        <div className="sticky top-0 p-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-between z-10">
+          <div className="flex-1 text-left font-medium">Alert Message</div>
+          <div className="w-[120px] text-center font-medium">Timestamp</div>
+          <div className="w-[100px] text-center font-medium">Status</div>
+        </div>
+        <div className="">
+          {alerts.map((alert, index) => ( // Limiting to show 6 alerts at once
+            <div key={index} className="flex items-start justify-between p-4 bg-white hover:bg-gray-50 transition duration-300 border border-gray-200">
+              <div className="flex-1 xl:max-w-[250px] max-w-96">
+                <p className="text-sm font-medium text-gray-900 break-words">{alert.alert_message}</p>
+              </div>
+              <div className="w-[120px] text-center text-sm text-gray-700">
+                {formatTimestamp(alert.timestamp)}
+              </div>
+              <div className="w-[100px] text-center flex items-center justify-start text-sm text-gray-700">
+                <span className="mr-2">{getStatusIcon(alert.alert_status)}</span>
+                {alert.alert_status}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
