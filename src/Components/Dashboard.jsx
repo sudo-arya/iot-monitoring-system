@@ -9,6 +9,7 @@ import PiGraph from "./PiGraph";
 // eslint-disable-next-line
 import { MapComponent, MapPage } from "./MapComponent";
 import LatestSensorData from "./LatestSensorData";
+import DisplayAlert from "./DisplayAlert";
 
 
 const Dashboard = () => {
@@ -151,6 +152,7 @@ const Dashboard = () => {
             {selectedLocation ? (
             <LatestSensorData userId={userId} piId={selectedLocation.piId} piName={selectedLocation.piLocation} />):( <div className="overflow-x-auto shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 xl:h-[calc(100vh-40rem)] h-fit relative xl:w-[calc(100vw-84rem)] w-[calc(100vw-6rem)] text-center justify-center items-center flex bg-gray-200">Select a location from the map to see details here.</div>)}
           </div>
+          <div><DisplayAlert userId={userId}/></div>
         </div>
       </div>
     </div>

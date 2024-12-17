@@ -367,6 +367,60 @@ app.get("/get-latest-sensors-for-pi", async (req, res) => {
 });
 
 
+// SSE endpoint to get alerts by user_id
+app.get('/get-alerts-for-user', (req, res) => {
+  const { user_id } = req.query;
+
+  // Validate user_id input
+  if (!user_id) {
+    return res.status(400).send('User ID is required');
+  }
+
+  // Log when a connection is established
+  console.log(`SSE connection established for user_id: ${user_id}`);
+
+  // Set headers for SSE
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  // Query the database for alerts
+  const query = `SELECT alert_type, alert_message, alert_status, timestamp
+                 FROM ${user_id}_alert_data`; // Assuming pi_id is related to the user_id
+
+  db.query(query, [user_id], (err, results) => {
+    if (err) {
+      console.error('Error querying the database:', err);
+      return res.status(500).send('Error querying the database');
+    }
+
+    if (results.length > 0) {
+      // Send the results as SSE messages
+      results.forEach((alert) => {
+        const data = {
+          alert_type: alert.alert_type,
+          alert_message: alert.alert_message,
+          alert_status: alert.alert_status,
+          timestamp: alert.timestamp,
+        };
+
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      });
+    } else {
+      res.write(`data: {"message": "No alerts found for this user."}\n\n`);
+    }
+
+    // Keep the SSE connection alive
+    setInterval(() => {
+      res.write(':\n\n'); // Keep connection alive by sending empty data
+    }, 10000);
+  });
+
+  // Log when the SSE connection is closed or disconnected
+  req.on('close', () => {
+    console.log(`SSE connection closed for user_id: ${user_id}`);
+  });
+});
 
 
 
