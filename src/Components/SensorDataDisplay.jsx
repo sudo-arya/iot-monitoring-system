@@ -188,8 +188,10 @@ useEffect(() => {
     }
 
     const range = maxTime && minTime ? maxTime - minTime : 0;
-    const leftPadding = range * 0.02; // Adjust padding on the left
-    const rightPadding = range * 0.002; // Adjust padding on the right
+    const leftPadding = range * 0.2; // Adjust padding on the left
+    const rightPadding = range * 0.04; // Adjust padding on the right
+    // const leftPadding = range * 0.02; // Adjust padding on the left
+    // const rightPadding = range * 0.002; // Adjust padding on the right
 
     const zoomMin = latestTime ? latestTime - leftPadding : minTime;
     const zoomMax = latestTime ? latestTime + rightPadding : maxTime;
