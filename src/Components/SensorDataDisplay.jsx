@@ -289,7 +289,7 @@ useEffect(() => {
         <div className="overflow-x-auto shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 xl:h-[calc(100vh-40rem)] h-[calc(100vh-24rem)] relative xl:w-full w-[calc(100vw-6rem)] text-center justify-center items-center flex bg-gray-200">Select a location from the map to see avaliable sensors.</div>
       ) : sensorTypes.length > 0 ? (
         <div>
-          <div className="flex xl:text-center xl:justify-center items-start justify-start flex-row xl:flex-row text-white font-semibold text-base">
+          <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base">
             {sensorTypes.map((sensorType, index) => (
               <button
                 key={sensorType}
@@ -299,7 +299,7 @@ useEffect(() => {
                     sensorData[sensorType][0]?.sensor_id
                   )
                 }
-                className={`flex xl:w-fit py-2 px-1 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl
+                className={`flex xl:w-fit py-2 px-4 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl
         ${
           selectedSensorType === sensorType
             ? "bg-gradient-to-r from-blue-500 to-indigo-500"

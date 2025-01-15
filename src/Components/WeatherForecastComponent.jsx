@@ -159,10 +159,10 @@ const WeatherForecastComponent = ({ locations }) => {
   };
 
   return (
-    <div className="xl:w-full w-[calc(100vw-6rem)] bg-white px-6 xl:px-0 py-4 text-gray-700">
-      <div className="flex xl:text-center xl:justify-center items-start justify-start flex-row xl:flex-row text-white font-semibold text-base">
+    <div className="xl:w-full w-[calc(100vw-6rem)] bg-white px-6 xl:px-0 py-4 text-gray-700" >
+      <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base">
         <div
-          className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
+          className={`flex xl:w-1/3 py-2 xl:px-1 px-4 justify-center items-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
             viewMode === "hourly"
               ? "bg-gradient-to-r from-blue-500 to-indigo-500"
               : "bg-gray-400"

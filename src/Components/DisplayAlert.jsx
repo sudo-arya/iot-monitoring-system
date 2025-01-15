@@ -60,30 +60,40 @@ const DisplayAlert = ({ userId }) => {
   return (
     <div className="xl:w-[calc(100vw-84rem)] w-[calc(100vw-6rem)] p-">
       <h2 className="text-3xl font-semibold mb-4 mt-4 text-gray-800">Latest Alerts :-</h2>
-      <div className="overflow-y-auto xl:h-[calc(100vh-40rem)] h-[calc(100vh-24rem)] shadow-lg rounded-lg border border-gray-300 ">
-        {/* Fixed header */}
-        <div className="sticky top-0 p-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-between z-10">
-          <div className="flex-1 text-left font-medium">Alert Message</div>
-          <div className="w-[120px] text-center font-medium">Timestamp</div>
-          <div className="w-[100px] text-center font-medium">Status</div>
-        </div>
-        <div className="">
-          {alerts.map((alert, index) => ( // Limiting to show 6 alerts at once
-            <div key={index} className="flex items-start justify-between p-4 bg-white hover:bg-gray-50 transition duration-300 border border-gray-200">
-              <div className="flex-1 xl:max-w-[250px] max-w-96">
-                <p className="text-sm font-medium text-gray-900 break-words">{alert.alert_message}</p>
-              </div>
-              <div className="w-[120px] text-center text-sm text-gray-700">
-                {formatTimestamp(alert.timestamp)}
-              </div>
-              <div className="w-[100px] text-center flex items-center justify-start text-sm text-gray-700">
-                <span className="mr-2">{getStatusIcon(alert.alert_status)}</span>
-                {alert.alert_status}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <div className="overflow-x-auto shadow-md rounded-lg border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 overflow-y-auto h-[calc(100vh-40rem)]">
+  <table className="min-w-full divide-y divide-gray-200 bg-white  ">
+    <thead className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white ">
+      <tr>
+        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+          Alert Message
+        </th>
+        <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+          Timestamp
+        </th>
+        <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+          Status
+        </th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-gray-200">
+      {alerts.map((alert, index) => (
+        <tr key={index} className="hover:bg-gray-100">
+          <td className="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">
+            {alert.alert_message}
+          </td>
+          <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-600">
+            {formatTimestamp(alert.timestamp)}
+          </td>
+          <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-600 flex items-center justify-start">
+            <span className="mr-2">{getStatusIcon(alert.alert_status)}</span>
+            {alert.alert_status}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
     </div>
   );
 };
