@@ -461,6 +461,90 @@ app.get('/get-sensor-data', (req, res) => {
 
 
 
+// irrrigation managenent and control apis
+// SSE endpoint to get the current irrigation status
+app.get('/current-irrigation-status', (req, res) => {
+  const { user_id } = req.query;
+
+  // Validate input
+  if (!user_id) {
+    return res.status(400).send('User ID is required');
+  }
+
+  console.log(`SSE connection established for user_id: ${user_id} - Monitoring irrigation status`);
+
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  // To store the last sent data
+  let lastSentData = null;
+
+  const sendIrrigationStatus = () => {
+    const query = `SELECT actuator_id, actuator_name, actuator_location, min_actuator_value,
+                          max_actuator_value, actuator_status, time
+                   FROM ${user_id}_actuator_table
+                   WHERE actuator_status != 'inactive'`;
+
+    db.query(query, [user_id], (err, results) => {
+      if (err) {
+        console.error('Error querying the database:', err);
+        res.write(`data: {"error": "Error querying the database"}\n\n`);
+        return;
+      }
+
+      // If there are results, compare with last sent data
+      if (results.length > 0) {
+        const dataToSend = results.map((actuator) => ({
+          actuator_id: actuator.actuator_id,
+          actuator_name: actuator.actuator_name,
+          actuator_location: actuator.actuator_location,
+          min_actuator_value: actuator.min_actuator_value,
+          max_actuator_value: actuator.max_actuator_value,
+          actuator_status:actuator.actuator_status,
+          time: actuator.time,
+        }));
+
+        // Check if the current data differs from the last sent data
+        if (JSON.stringify(dataToSend) !== JSON.stringify(lastSentData)) {
+          // Send the new data to the client
+          res.write(`data: ${JSON.stringify(dataToSend)}\n\n`);
+          lastSentData = dataToSend; // Update last sent data
+        }
+      } else {
+        // If no results, clear the last sent data
+        if (lastSentData !== null) {
+          res.write(`data: {"message": "No active actuators found for this user"}\n\n`);
+          lastSentData = null; // Update last sent data
+        }
+      }
+    });
+  };
+
+  // Send initial irrigation status
+  sendIrrigationStatus();
+
+  // Keep the connection alive with regular updates
+  const interval = setInterval(() => {
+    sendIrrigationStatus();
+  }, 10000); // Update every 10 seconds
+
+  // Cleanup when the connection closes
+  req.on('close', () => {
+    console.log(`SSE connection closed for user_id: ${user_id}`);
+    clearInterval(interval);
+  });
+});
+
+
+
+
+
+
+
+
+
 
 
 app.post("/login", (req, res) => {

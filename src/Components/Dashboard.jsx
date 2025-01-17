@@ -75,7 +75,7 @@ const Dashboard = () => {
       </div>
       {/* Ensure Sidebar takes full height */}
       {/* Content section */}
-      <div className="absolute h-full my-20 ml-20 flex xl:flex-row flex-col">
+      <div className="absolute xl:w-[calc(100vw-6rem)] h-full my-20 ml-20 flex xl:flex-row flex-col">
         {toastMessage && (
           <div
             className={`toast-top ${toastColor} p-2 px-10 my-20 fixed text-xl rounded-xl xl:right-6 xl:top-2 top-0 right-2 text-green-700 border-green-300 border`}
@@ -106,7 +106,7 @@ const Dashboard = () => {
 
           <div className="h-40 xl:visible hidden">&nbsp;</div>
         </div>
-        <div className="my-2 xl:mx-8">
+        <div className="my-2 xl:mx-6">
           <div className=" relative">
             {/* White Div that will overlap on the MapComponent */}
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white p-3 underline shadow-lg rounded-md text-center text-sm xl:text-xl font-semibold text-gray-700 z-20">

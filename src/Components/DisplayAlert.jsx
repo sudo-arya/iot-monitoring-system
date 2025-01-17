@@ -90,7 +90,7 @@ const DisplayAlert = ({ userId }) => {
           </td>
         </tr>
       ))}
-    </tbody>
+      </tbody>
   </table>
 </div>
 
