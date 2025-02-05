@@ -131,6 +131,26 @@ const Irrigation = () => {
 
 
 
+  // redefined as to use outside too for refetching data after actyivating or deactivating
+  const fetchActuatorsList = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/get-actuators?user_id=${userId}&pi_id=${selectedLocation?.piId || ''}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setActuatorsList(data);
+      } else {
+        setError("Failed to fetch actuators. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error fetching actuators:", error);
+      setError("Error fetching actuators.");
+    }
+    setIsLoading(false);
+  };
+
+
   // Add this function to send actuator mode change request
   const handleActuatorModeChange = async (mode) => {
     if (!selectedActuator) {
@@ -160,6 +180,8 @@ const Irrigation = () => {
       if (response.ok) {
         const result = await response.json();
         showToast(`Actuator ${mode === "active" ? "activated" : "deactivated"} successfully.`,`${mode === "inactive" ? "bg-red-100 text-red-700 border-red-300" : "bg-green-100"}`);
+        //Refetch the actuators list after mode change
+        fetchActuatorsList();
       } else {
         showToast(`Failed to change actuator mode.`,`bg-red-100 text-red-700 border-red-300`);
       }
