@@ -14,7 +14,11 @@ const Irrigation = () => {
     // eslint-disable-next-line
     const [isLoading, setIsLoading] = useState(false); // Loading state
     const [actuators, setActuators] = useState([]);
+    const [actuatorsList, setActuatorsList] = useState([]);const [selectedActuator, setSelectedActuator] = useState(null); // State to store selected actuator
+
+
   const sseSourceRef = useRef(null);  // Ref to hold the SSE connection
+  // eslint-disable-next-line
   const [error, setError] = useState(""); // For error state handling
 
     useEffect(() => {
@@ -33,6 +37,15 @@ const Irrigation = () => {
         return () => clearTimeout(timer); // Cleanup timer
       }
     }, [location.state]);
+
+    const showToast = (message,color) => {
+      setToastMessage(message);
+      setToastColor(color);
+      setTimeout(() => {
+        setToastMessage('');
+      }, 3000); // Clears the message after 3 seconds
+    };
+
 
     const userId = localStorage.getItem("userId");
     console.log("User ID:", userId);
@@ -83,6 +96,79 @@ const Irrigation = () => {
   }, [userId]); // Dependency array to trigger effect when userId changes
 
 
+  useEffect(() => {
+    const fetchActuatorsList = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/get-actuators?user_id=${userId}&pi_id=${selectedLocation?.piId || ''}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setActuatorsList(data);
+        } else {
+          setError("Failed to fetch actuators. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error fetching actuators:", error);
+        setError("Error fetching actuators.");
+      }
+      setIsLoading(false);
+    };
+
+    if (selectedLocation) {
+      setIsLoading(true);
+      fetchActuatorsList();
+      setSelectedActuator(null);
+    }
+  }, [userId, selectedLocation]);
+
+  useEffect(() => {
+    if (actuatorsList.length === 1) {
+      setSelectedActuator(actuatorsList[0]); // Automatically select the single actuator
+    }
+
+  }, [actuatorsList]); // Dependency ensures it runs when actuatorsList changes
+
+
+
+  // Add this function to send actuator mode change request
+  const handleActuatorModeChange = async (mode) => {
+    if (!selectedActuator) {
+      setToastMessage("Please select an actuator.");
+      setToastColor("bg-red-500");
+      return;
+    }
+
+    // Check if selectedLocation and its piId are available
+    const userId = localStorage.getItem("userId");
+    const piId = selectedLocation?.piId || "";
+
+    try {
+      const response = await fetch("http://localhost:3000/actuator-mode", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          actuator_id: selectedActuator.actuator_id,
+          user_id: userId, // Include user_id
+          pi_id: piId, // Include pi_id
+          actuator_status: mode,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        showToast(`Actuator ${mode === "active" ? "activated" : "deactivated"} successfully.`,`${mode === "inactive" ? "bg-red-100 text-red-700 border-red-300" : "bg-green-100"}`);
+      } else {
+        showToast(`Failed to change actuator mode.`,`bg-red-100 text-red-700 border-red-300`);
+      }
+    } catch (error) {
+      showToast(`Error connecting to the server.`,`bg-red-100 text-red-700 border-red-300`);
+
+    }
+  };
+
 
 
   return (
@@ -115,18 +201,44 @@ const Irrigation = () => {
   ) : (
     <div>
       <h2 className="text-2xl font-semibold text-gray-800">Active Water Pumps</h2>
-      <ul className="mt-4 space-y-4">
-        {actuators.map((actuator) => (
-          <li key={actuator.actuator_id} className="p-4 bg-gray-100 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold text-gray-800">{actuator.actuator_name}</h3>
-            <p className="text-sm text-gray-600">Location: {actuator.actuator_location}</p>
-            <p className="text-sm text-gray-600">Min Value: {actuator.min_actuator_value}</p>
-            <p className="text-sm text-gray-600">Max Value: {actuator.max_actuator_value}</p>
-            <p className="text-sm text-gray-600">status: {actuator.actuator_status}</p>
-            <p className="text-sm text-gray-600">Time: {actuator.time}</p>
-          </li>
-        ))}
-      </ul>
+      <div className="mt-4 space-y-4">
+  {actuators.map((actuator) => (
+    <div
+      key={actuator.actuator_id}
+      className="p-4 bg-gray-100 rounded-lg shadow-md flex flex-wrap items-center justify-between space-y-2 md:space-y-0"
+    >
+      <div className="flex-1">
+        <h3 className="text-xl font-semibold text-gray-800">{actuator.actuator_name}</h3>
+      </div>
+      <div className="flex-1">
+        <p className="text-sm text-gray-600">
+          <strong>Location:</strong> {actuator.actuator_location}
+        </p>
+      </div>
+      <div className="flex-1">
+        <p className="text-sm text-gray-600">
+          <strong>Min Value:</strong> {actuator.min_actuator_value}
+        </p>
+      </div>
+      <div className="flex-1">
+        <p className="text-sm text-gray-600">
+          <strong>Max Value:</strong> {actuator.max_actuator_value}
+        </p>
+      </div>
+      <div className="flex-1">
+        <p className="text-sm text-gray-600">
+          <strong>Status:</strong> {actuator.actuator_status}
+        </p>
+      </div>
+      <div className="flex-1">
+        <p className="text-sm text-gray-600">
+          <strong>Time:</strong> {actuator.time}
+        </p>
+      </div>
+    </div>
+  ))}
+</div>
+
     </div>
   )}
 </div>
@@ -162,7 +274,80 @@ const Irrigation = () => {
               <div className="border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-full text-center justify-center items-center flex bg-gray-200 p-4">Select a location from the map to see details here.</div>
             )}
           </div>
+
+          {isLoading ? (
+  <p className="text-center text-gray-500">Loading irrigation status...</p>
+) : actuatorsList.length === 0 ? (
+  <>
+    {/* No active actuators found for this location */}
+  </>
+) : (
+  <div className="mt-4">
+  <h2 className="text-2xl font-semibold text-gray-800">Available Water Pumps</h2>
+  <div className="mt-4 space-y-4">
+    {actuatorsList.map((actuator) => (
+      <div
+        key={actuator.actuator_id}
+        className={`p-4  rounded-lg shadow-md flex flex-wrap items-center justify-between space-y-2 md:space-y-0 cursor-pointer ${
+          selectedActuator?.actuator_id === actuator.actuator_id
+            ? "bg-blue-200"
+            : "bg-gray-100"
+        }`}
+        onClick={() => setSelectedActuator(actuator)} // Set selected actuator on click
+      >
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-gray-800">
+            {actuator.actuator_name}
+          </h3>
+        </div>
+        <div className="flex-1">
+          <p className="text-sm text-gray-600">
+            <strong>Location:</strong> {actuator.actuator_location}
+          </p>
+        </div>
+        <div className="flex-1">
+          <p className="text-sm text-gray-600">
+            <strong>Status:</strong> {actuator.actuator_status}
+          </p>
+        </div>
+        {/* {selectedActuator} */}
+      </div>
+
+    ))}
+  </div>
+</div>
+)}
+
           </div>
+
+          <div className="my-2 xl:mx-6 xl:h-[calc(100vh-36rem)] h-fit xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]">{selectedActuator ? (
+              <div className="p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-full">
+              <h2 className="text-xl font-semibold">{selectedActuator.actuator_name}</h2>
+              <p><strong>Location:</strong> {selectedActuator.actuator_location}</p>
+              <p><strong>Status:</strong> {selectedActuator.actuator_status}</p>
+
+              {/* Add buttons to control actuator mode */}
+              <div className="mt-4 flex space-x-4">
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
+                  onClick={() => handleActuatorModeChange("active")}
+                >
+                  Activate
+                </button>
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600"
+                  onClick={() => handleActuatorModeChange("inactive")}
+                >
+                  Deactivate
+                </button>
+              </div>
+            </div>
+            ) : (
+              <div className="border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-full text-center justify-center items-center flex bg-gray-200 p-4">Select a actuator from the actuators list to make them work.</div>
+            )}</div>
+
+
+
           </div>
 </div>
     </div>

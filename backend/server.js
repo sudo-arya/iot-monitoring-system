@@ -537,9 +537,113 @@ app.get('/current-irrigation-status', (req, res) => {
   });
 });
 
+// Endpoint to fetch actuators for a given user_id and selected pi_id
+app.get('/get-actuators', (req, res) => {
+  const { user_id, pi_id } = req.query;
+
+  // Validate inputs
+  if (!user_id || !pi_id) {
+    return res.status(400).json({ error: 'User ID and PI ID are required' });
+  }
+
+  console.log(`Fetching actuators for user_id: ${user_id} and pi_id: ${pi_id}`);
+
+  // Query to get actuators for the specified user_id and pi_id
+  const query = `
+    SELECT actuator_id, actuator_name, actuator_location, min_actuator_value,
+           max_actuator_value, actuator_status, time, created_at, updated_at
+    FROM ${user_id}_actuator_table
+    WHERE pi_id = ?
+  `;
+
+  db.query(query, [pi_id], (err, results) => {
+    if (err) {
+      console.error('Error querying the database:', err);
+      return res.status(500).json({ error: 'Error querying the database' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No actuators found for the specified PI ID' });
+    }
+
+    // Prepare the response
+    const response = results.map((actuatorsList) => ({
+      actuator_id: actuatorsList.actuator_id,
+      actuator_name: actuatorsList.actuator_name,
+      actuator_location: actuatorsList.actuator_location,
+      min_actuator_value: actuatorsList.min_actuator_value,
+      max_actuator_value: actuatorsList.max_actuator_value,
+      actuator_status: actuatorsList.actuator_status,
+      time: actuatorsList.time,
+      created_at: actuatorsList.created_at,
+      updated_at: actuatorsList.updated_at,
+    }));
+
+    // Send the response
+    res.status(200).json(response);
+  });
+});
 
 
 
+// Endpoint to insert or update actuator data
+app.post('/actuator-mode', (req, res) => {
+  const { user_id, actuator_id, min_actuator_value, max_actuator_value, actuator_status, time, after } = req.body;
+
+  // Validate required inputs
+  if (!user_id || !actuator_id) {
+    return res.status(400).json({ error: 'User ID and Actuator ID are required' });
+  }
+
+  console.log(`Inserting/updating actuator data for user_id: ${user_id}, actuator_id: ${actuator_id}`);
+
+  // Default values
+  const defaultValues = {
+    min_actuator_value: 0,
+    max_actuator_value: 0,
+    actuator_status: 'inactive',
+    time: 0,
+    after: new Date(), // Current timestamp
+    updated_at: new Date() // Current timestamp for updates
+  };
+
+  // Assign values with defaults if missing
+  const newData = {
+    min_actuator_value: min_actuator_value ?? defaultValues.min_actuator_value,
+    max_actuator_value: max_actuator_value ?? defaultValues.max_actuator_value,
+    actuator_status: actuator_status ?? defaultValues.actuator_status,
+    time: time ?? defaultValues.time,
+    after: after ?? defaultValues.after,
+    updated_at: defaultValues.updated_at // Always update timestamp
+  };
+
+  // Upsert query: Insert new data or update if actuator_id exists
+  const query = `
+    INSERT INTO ${user_id}_actuator_table
+    (actuator_id, min_actuator_value, max_actuator_value, actuator_status, time, after, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      min_actuator_value = VALUES(min_actuator_value),
+      max_actuator_value = VALUES(max_actuator_value),
+      actuator_status = VALUES(actuator_status),
+      time = VALUES(time),
+      after = VALUES(after),
+      updated_at = VALUES(updated_at)
+  `;
+
+  db.query(
+    query,
+    [actuator_id, newData.min_actuator_value, newData.max_actuator_value, newData.actuator_status, newData.time, newData.after, newData.updated_at],
+    (err, result) => {
+      if (err) {
+        console.error('Error inserting/updating the database:', err);
+        return res.status(500).json({ error: 'Error inserting/updating the database' });
+      }
+
+      res.status(201).json({ message: 'Actuator data inserted/updated successfully' });
+    }
+  );
+});
 
 
 
