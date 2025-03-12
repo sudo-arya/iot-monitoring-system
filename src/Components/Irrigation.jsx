@@ -27,6 +27,19 @@ const Irrigation = () => {
   const [minValue, setMinValue] = useState(0.0);
   const [maxValue, setMaxValue] = useState(100.0);
   const [selectedTime, setSelectedTime] = useState(0); // State to hold selected time
+  const [selectedDateTime, setSelectedDateTime] = useState({
+    date: null,
+    hours: null,
+    minutes: null
+  });
+
+  const handleDateTimeChange = (date, hours, minutes) => {
+    setSelectedDateTime({
+      date,
+      hours,
+      minutes
+    });
+  };
 
   // Callback function to handle time changes
   const handleTimeChange = (newTime) => {
@@ -439,7 +452,8 @@ const Irrigation = () => {
         <div className="flex flex-col items-center mt-1">
           {dateMode === "schedule" && (
             <div className="w-full max-w-md">
-              <DateTimeInput />
+              <DateTimeInput onDateTimeChange={handleDateTimeChange} />
+              <h1>Selected Date and Time: {JSON.stringify(selectedDateTime)}</h1>
             </div>
           )}
 

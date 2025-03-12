@@ -6,7 +6,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { format } from 'date-fns';
 
-const DateTimePickerComponent = () => {
+const DateTimeInput = ({ onDateTimeChange }) => {
   // Get current date and time for default values
   const currentDate = new Date();
   const currentHours = currentDate.getHours();
@@ -24,6 +24,13 @@ const DateTimePickerComponent = () => {
     setSelectedHours(currentHours);
     setSelectedMinutes(currentMinutes);
   }, []);
+
+  useEffect(() => {
+    // Notify the parent component whenever the date or time changes
+    if (onDateTimeChange) {
+      onDateTimeChange(selectedDate, selectedHours, selectedMinutes);
+    }
+  }, [selectedDate, selectedHours, selectedMinutes, onDateTimeChange]);
 
   const handleDateChange = (newDate) => {
     setSelectedDate(newDate);
@@ -59,20 +66,38 @@ const DateTimePickerComponent = () => {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box className="p-4 flex flex-col gap-4">
-        {/* Date Picker */}
-        <DatePicker
-          label="Select Date"
-          value={selectedDate}
-          onChange={handleDateChange}
-          renderInput={(params) => (
-            <TextField {...params} className="w-full" />
-          )}
-        />
+        {/* Date and Hours Input in a Row for Larger Screens, Stack for Smaller Screens */}
+        <div className="flex flex-col xl:flex-row gap-4 w-full">
+          {/* Date Picker */}
+          <div className="xl:w-1/2 w-full">
+            <DatePicker
+              label="Select Date"
+              value={selectedDate}
+              onChange={handleDateChange}
+              renderInput={(params) => (
+                <TextField {...params} fullWidth variant="outlined" />
+              )}
+            />
+          </div>
 
-        {/* Button to Open Hours Picker Dialog */}
-        <Button variant="contained" color="primary" onClick={handleHoursDialogOpen}>
-          Select Hours
-        </Button>
+          {/* Button to Open Hours Picker Dialog */}
+          <div className="xl:w-1/2 w-full">
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleHoursDialogOpen}
+              className="w-full"
+              style={{
+                height: "100%",  // Match the height of the DatePicker input
+                display: "flex",
+                alignItems: "center", // Vertically center the text in button
+                justifyContent: "center", // Horizontally center the text
+              }}
+            >
+              Select Hours
+            </Button>
+          </div>
+        </div>
 
         {/* Display selected date and time */}
         {formattedDateTime && (
@@ -97,11 +122,8 @@ const DateTimePickerComponent = () => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleMinutesDialogClose} color="secondary">
-              Cancel
-            </Button>
             <Button onClick={() => setOpenHoursDialog(false)} color="primary">
-              Done
+              Cancel
             </Button>
           </DialogActions>
         </Dialog>
@@ -121,11 +143,8 @@ const DateTimePickerComponent = () => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleMinutesDialogClose} color="secondary">
-              Cancel
-            </Button>
             <Button onClick={() => setOpenMinutesDialog(false)} color="primary">
-              Done
+              Cancel
             </Button>
           </DialogActions>
         </Dialog>
@@ -134,4 +153,4 @@ const DateTimePickerComponent = () => {
   );
 };
 
-export default DateTimePickerComponent;
+export default DateTimeInput;
