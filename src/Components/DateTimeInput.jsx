@@ -25,7 +25,7 @@ const DateTimeInput = ({ onDateTimeChange }) => {
     setSelectedMinutes(currentMinutes);
   }, []);
 
-  useEffect(() => {
+    useEffect(() => {
     // Notify the parent component whenever the date or time changes
     if (onDateTimeChange) {
       onDateTimeChange(selectedDate, selectedHours, selectedMinutes);
@@ -66,38 +66,20 @@ const DateTimeInput = ({ onDateTimeChange }) => {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box className="p-4 flex flex-col gap-4">
-        {/* Date and Hours Input in a Row for Larger Screens, Stack for Smaller Screens */}
-        <div className="flex flex-col xl:flex-row gap-4 w-full">
-          {/* Date Picker */}
-          <div className="xl:w-1/2 w-full">
-            <DatePicker
-              label="Select Date"
-              value={selectedDate}
-              onChange={handleDateChange}
-              renderInput={(params) => (
-                <TextField {...params} fullWidth variant="outlined" />
-              )}
-            />
-          </div>
+        {/* Date Picker */}
+        <DatePicker
+          label="Select Date"
+          value={selectedDate}
+          onChange={handleDateChange}
+          renderInput={(params) => (
+            <TextField {...params} className="w-full" />
+          )}
+        />
 
-          {/* Button to Open Hours Picker Dialog */}
-          <div className="xl:w-1/2 w-full">
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleHoursDialogOpen}
-              className="w-full"
-              style={{
-                height: "100%",  // Match the height of the DatePicker input
-                display: "flex",
-                alignItems: "center", // Vertically center the text in button
-                justifyContent: "center", // Horizontally center the text
-              }}
-            >
-              Select Hours
-            </Button>
-          </div>
-        </div>
+        {/* Button to Open Hours Picker Dialog */}
+        <Button variant="contained" color="primary" onClick={handleHoursDialogOpen}>
+          Select Hours
+        </Button>
 
         {/* Display selected date and time */}
         {formattedDateTime && (
@@ -122,8 +104,11 @@ const DateTimeInput = ({ onDateTimeChange }) => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpenHoursDialog(false)} color="primary">
+            <Button onClick={handleMinutesDialogClose} color="secondary">
               Cancel
+            </Button>
+            <Button onClick={() => setOpenHoursDialog(false)} color="primary">
+              Done
             </Button>
           </DialogActions>
         </Dialog>
@@ -143,8 +128,11 @@ const DateTimeInput = ({ onDateTimeChange }) => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpenMinutesDialog(false)} color="primary">
+            <Button onClick={handleMinutesDialogClose} color="secondary">
               Cancel
+            </Button>
+            <Button onClick={() => setOpenMinutesDialog(false)} color="primary">
+              Done
             </Button>
           </DialogActions>
         </Dialog>
