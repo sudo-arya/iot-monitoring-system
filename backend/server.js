@@ -483,9 +483,8 @@ app.get('/current-irrigation-status', (req, res) => {
 
   const sendIrrigationStatus = () => {
     const query = `SELECT actuator_id, actuator_name, actuator_location, min_actuator_value,
-                          max_actuator_value, actuator_status, time
-                   FROM ${user_id}_actuator_table
-                   WHERE actuator_status != 'inactive'`;
+                          max_actuator_value, actuator_status, time,after
+                   FROM ${user_id}_actuator_table`;
 
     db.query(query, [user_id], (err, results) => {
       if (err) {
@@ -504,6 +503,7 @@ app.get('/current-irrigation-status', (req, res) => {
           max_actuator_value: actuator.max_actuator_value,
           actuator_status:actuator.actuator_status,
           time: actuator.time,
+          after:actuator.after,
         }));
 
         // Check if the current data differs from the last sent data

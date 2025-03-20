@@ -17,7 +17,7 @@ const Irrigation = () => {
     const [isLoading, setIsLoading] = useState(false); // Loading state
     const [actuators, setActuators] = useState([]);
     const [actuatorsList, setActuatorsList] = useState([]);const [selectedActuator, setSelectedActuator] = useState(null); // State to store selected actuator
-  const [viewMode, setViewMode] = useState("manual"); // "hourly" or "weekly"
+  const [viewMode, setViewMode] = useState("auto"); // "hourly" or "weekly"
   const [dateMode, setDateMode] = useState("now"); // 'now' or 'other'
 
   const sseSourceRef = useRef(null);  // Ref to hold the SSE connection
@@ -196,6 +196,43 @@ const Irrigation = () => {
     const userId = localStorage.getItem("userId");
     const piId = selectedLocation?.piId || "";
 
+    let updatedMinValue = minValue;
+let updatedMaxValue = maxValue;
+let updatedSelectedTime = selectedTime;
+let isoDate = selectedDateTime.date; // "2025-03-20T12:01:31.311Z"
+// let currentTimestamp = new Date().toISOString().slice(0, 19).replace("T", " ");
+let localTimestamp = new Date();
+let currentTimestamp = localTimestamp.getFullYear() + "-" +
+  String(localTimestamp.getMonth() + 1).padStart(2, '0') + "-" +
+  String(localTimestamp.getDate()).padStart(2, '0') + " " +
+  String(localTimestamp.getHours()).padStart(2, '0') + ":" +
+  String(localTimestamp.getMinutes()).padStart(2, '0') + ":" +
+  String(localTimestamp.getSeconds()).padStart(2, '0');
+
+// Convert ISO to JS Date object
+let jsDate = new Date(isoDate);
+
+// Create the MySQL timestamp string (YYYY-MM-DD HH:MM:SS)
+let mysqlTimestamp = `${jsDate.getFullYear()}-${String(jsDate.getMonth() + 1).padStart(2, '0')}-${String(jsDate.getDate()).padStart(2, '0')} ${String(jsDate.getHours()).padStart(2, '0')}:${String(jsDate.getMinutes()).padStart(2, '0')}:${String(jsDate.getSeconds()).padStart(2, '0')}`;
+
+if (mode==="inactive") {
+  updatedMinValue = 0;
+  updatedMaxValue = 0;
+  updatedSelectedTime = 0;
+  mysqlTimestamp = currentTimestamp;
+}
+else if (viewMode === "manual") {
+  updatedMinValue = 0;
+  updatedMaxValue = 0;
+  if (dateMode==="now") {
+    mysqlTimestamp=currentTimestamp
+  }
+
+} else if (viewMode === "auto") {
+  updatedSelectedTime = 0;
+  mysqlTimestamp = currentTimestamp;
+}
+
     try {
       const response = await fetch("http://localhost:3000/actuator-mode", {
         method: "POST",
@@ -207,6 +244,10 @@ const Irrigation = () => {
           user_id: userId, // Include user_id
           pi_id: piId, // Include pi_id
           actuator_status: mode,
+          min_actuator_value: updatedMinValue,
+      max_actuator_value: updatedMaxValue,
+      time: updatedSelectedTime,
+      after: mysqlTimestamp,
         }),
       });
 
@@ -247,60 +288,85 @@ const Irrigation = () => {
         )}
       {/* Irrigation<br/><br/> */}
 
-
-      <div className="my-2 p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-[calc(100vw-6rem)]">
+        {/* top container */}
+      <div className=" p-3 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-[calc(100vw-6rem)]">
       {isLoading ? (
-    <p className="text-center text-gray-500">Loading irrigation status...</p>
-  ) : actuators.length === 0 ? (
-    <p className="text-center text-red-500">No active actuators found for this USER ID</p>
-  ) : (
-    <div>
-      <h2 className="text-2xl font-semibold text-gray-800">Active Water Pumps</h2>
-      <div className="mt-4 space-y-4">
-  {actuators.map((actuator) => (
-    <div
-      key={actuator.actuator_id}
-      className="p-4 bg-gray-100 rounded-lg shadow-md flex flex-wrap items-center justify-between space-y-2 md:space-y-0"
-    >
-      <div className="flex-1">
-        <h3 className="text-xl font-semibold text-gray-800">{actuator.actuator_name}</h3>
-      </div>
-      <div className="flex-1">
-        <p className="text-sm text-gray-600">
-          <strong>Location:</strong> {actuator.actuator_location}
-        </p>
-      </div>
-      <div className="flex-1">
-        <p className="text-sm text-gray-600">
-          <strong>Min Value:</strong> {actuator.min_actuator_value}
-        </p>
-      </div>
-      <div className="flex-1">
-        <p className="text-sm text-gray-600">
-          <strong>Max Value:</strong> {actuator.max_actuator_value}
-        </p>
-      </div>
-      <div className="flex-1">
-        <p className="text-sm text-gray-600">
-          <strong>Status:</strong> {actuator.actuator_status}
-        </p>
-      </div>
-      <div className="flex-1">
-        <p className="text-sm text-gray-600">
-          <strong>Time:</strong> {actuator.time}
-        </p>
-      </div>
-    </div>
-  ))}
-</div>
+      <p className="text-center text-gray-500">Loading irrigation status...</p>
+        ) : actuators.length === 0 ? (
+          <p className="text-center text-red-500">No active actuators found for this USER ID</p>
+        ) : (
+      <div>
+        <h2 className="text-2xl font-semibold text-gray-800">Currently Running Pumps</h2>
+        <div className="mt-2 overflow-x-auto">
+          <div className="flex space-x-4">
+            {actuators
+              .filter((actuator) => actuator.actuator_status === 'active') // Only include active actuators
+              .map((actuator) => (
+                <div
+                  key={actuator.actuator_id}
+                  className="p-2 bg-gray-100 rounded-lg shadow-md w-64 flex-shrink-0"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold text-gray-800">{actuator.actuator_name}</h3>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <p><strong>Location:</strong> {actuator.actuator_location}</p>
+                    {(actuator.min_actuator_value !== 0 || actuator.max_actuator_value !== 0) && (
+                    <>
+                      {/* {actuator.min_actuator_value !== 0 && ( */}
+                        {/* <p><strong>Min Value:</strong> {actuator.min_actuator_value}</p> */}
+                      {/* )} */}
+                      {/* {actuator.max_actuator_value !== 0 && ( */}
+                        {/* <p><strong>Max Value:</strong> {actuator.max_actuator_value}</p> */}
 
-    </div>
+                        <p><strong>Run Automatic when :</strong> {actuator.min_actuator_value}-{actuator.max_actuator_value}</p>
+                      {/* )} */}
+                    </>
+                    )}
+
+                    {actuator.time !== 0 && (
+                      <p><strong>Run for:</strong> {actuator.time < 1 ? `${(actuator.time * 60).toFixed(0)} min` : `${Math.floor(actuator.time)} hrs ${((actuator.time - Math.floor(actuator.time)) * 60).toFixed(0)} min`}</p>
+                    )}
+                    <p><strong>Status:</strong>
+                      <span
+                        className={`text-sm font-medium px-2 rounded-full ml-2
+                          ${actuator.actuator_status === 'active' && 'bg-green-100 text-green-700'}
+                          ${actuator.actuator_status === 'inactive' && 'bg-gray-100 text-gray-700'}
+                          ${actuator.actuator_status === 'scheduled' && 'bg-blue-100 text-blue-700'}
+                          ${actuator.actuator_status === 'completed' && 'bg-purple-100 text-purple-700'}
+                          ${actuator.actuator_status === 'cancelled' && 'bg-red-100 text-red-700'}
+                        `}
+                      >
+                        {actuator.actuator_status}
+                      </span>
+                    </p>
+
+                    <p><strong>Timestamp:</strong> {new Date(actuator.after).toLocaleString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true,
+                    })}</p>
+
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      </div>
+
+
   )}
-</div>
-<div className=" h-full mt-1 flex xl:flex-row flex-col">
+      </div>
 
-      <div className="my-2 xl:mx-">
-      <div className=" relative">
+      {/* bottom container */}
+      <div className=" h-full mt-1 flex xl:flex-row flex-col">
+        {/* first column  */}
+        <div className="my-2 xl:mx-">
+          {/* map component */}
+          <div className=" relative">
             {/* White Div that will overlap on the MapComponent */}
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white p-3 underline shadow-lg rounded-md text-center text-sm xl:text-xl font-semibold text-gray-700 z-20">
               Select Farm Area
@@ -312,6 +378,7 @@ const Irrigation = () => {
               setSelectedLocation={setSelectedLocation} // Pass the setSelectedLocation function as a prop
             />{" "}
           </div>
+          {/* water pumps selection area */}
           <div className="xl:w-full w-[calc(100vw-6rem)] mt-4  ">
             {selectedLocation ? (
               <div className="p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-full">
@@ -329,14 +396,14 @@ const Irrigation = () => {
               <div className="border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-full text-center justify-center items-center flex bg-gray-200 p-4">Select a location from the map to see details here.</div>
             )}
           </div>
-
-          {isLoading ? (
+            {/* list of selectable water pumps */}
+              {isLoading ? (
   <p className="text-center text-gray-500">Loading irrigation status...</p>
-) : actuatorsList.length === 0 ? (
+              ) : actuatorsList.length === 0 ? (
   <>
     {/* No active actuators found for this location */}
   </>
-) : (
+              ) : (
   <div className="mt-4">
   <h2 className="text-2xl font-semibold text-gray-800">Available Water Pumps</h2>
   <div className="mt-4 space-y-4">
@@ -371,128 +438,258 @@ const Irrigation = () => {
     ))}
   </div>
 </div>
-)}
+              )}
+        </div>
 
+        {/* second column */}
+        <div className="my-2 xl:mx-6 xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]">
+          {/* process mode changer */}
+          <div className=" h-fit ">
+            {selectedActuator ? (
+            <div className="p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-full">
+              <h2 className="text-xl font-semibold text-center justify-center flex items-center gap-2">
+                {selectedActuator.actuator_name}
+                {/* Status Badge */}
+                <span className={`text-sm font-medium px-2 py-1 rounded-full
+                  ${selectedActuator.actuator_status === 'active' && 'bg-green-100 text-green-700'}
+                ${selectedActuator.actuator_status === 'inactive' && 'bg-gray-100 text-gray-700'}
+                  ${selectedActuator.actuator_status === 'scheduled' && 'bg-blue-100 text-blue-700'}
+                  ${selectedActuator.actuator_status === 'completed' && 'bg-purple-100 text-purple-700'}
+                  ${selectedActuator.actuator_status === 'cancelled' && 'bg-red-100 text-red-700'}
+                `}>
+                  {selectedActuator.actuator_status.charAt(0).toUpperCase() + selectedActuator.actuator_status.slice(1)}
+                </span>
+              </h2>
+              <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base mt-3 xl:mt-4">
+
+          {/* auto selector */}
+          <div
+            className={`flex xl:w-1/3 py-2 xl:px-1 px-4 justify-center items-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
+              viewMode === "auto"
+                ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+                : "bg-gray-400"
+            }`}
+            onClick={() => setViewMode("auto")}
+          >
+            <button>Auto Irrigation</button>
           </div>
+          {/* manual selector */}
+          <div
+            className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
+              viewMode === "manual"
+                ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+                : "bg-gray-400"
+            }`}
+            onClick={() => setViewMode("manual")}
+          >
+            <button>Manual Irrigation</button>
+          </div>
+              </div>
 
-          <div className="my-2 xl:mx-6 xl:h-[calc(100vh-36rem)] h-fit xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]">{selectedActuator ? (
-              <div className="p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-full">
-              <h2 className="text-xl font-semibold">{selectedActuator.actuator_name}</h2>
-              <p><strong>Location:</strong> {selectedActuator.actuator_location}</p>
-              <p><strong>Status:</strong> {selectedActuator.actuator_status}</p>
-              {/* <div className="p-6 space-y-4"></div> */}
-
-    <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base mt-3 xl:mt-4">
-        <div
-          className={`flex xl:w-1/3 py-2 xl:px-1 px-4 justify-center items-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
-            viewMode === "auto"
-              ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-              : "bg-gray-400"
-          }`}
-          onClick={() => setViewMode("auto")}
-        >
-          <button>Auto Irrigation</button>
+              {/* auto selection view */}
+              {viewMode === "auto" && (
+          <div className="">
+          {/* FloatInput controlled by parent */}
+          <FloatInput
+            minValue={minValue}
+            maxValue={maxValue}
+            onMinChange={handleMinChange}
+            onMaxChange={handleMaxChange}
+          />
+          {/* You can now use minValue & maxValue here */}
+  {/* {minValue}/{maxValue} */}
         </div>
-        <div
-          className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
-            viewMode === "manual"
-              ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-              : "bg-gray-400"
-          }`}
-          onClick={() => setViewMode("manual")}
-        >
-          <button>Manual Irrigation</button>
+              )}
+
+              {/* manual selection view */}
+              {viewMode === "manual"&&(
+          <div className="flex flex-col ">
+          {/* Buttons for selecting 'Now' or 'Other' */}
+          <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base mt-3">
+            {/* now view */}
+          <div
+            className={`flex xl:w-1/6 py-2 xl:px-1 px-4 justify-center items-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
+              dateMode === "now"
+                ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+                : "bg-gray-400"
+            }`}
+            onClick={() => setDateMode("now")}
+          >
+            <button>Now</button>
+          </div>
+          {/* schedule view */}
+          <div
+            className={`flex xl:w-1/6 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
+              dateMode === "schedule"
+                ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+                : "bg-gray-400"
+            }`}
+            onClick={() => setDateMode("schedule")}
+          >
+            <button>Schedule</button>
+          </div>
         </div>
-      </div>
 
+          {/* Conditionally render the components */}
+          <div className="flex flex-col items-center mt-1">
+            {dateMode === "schedule" && (
+              <div className="w-full max-w-md">
+                <DateTimeInput onDateTimeChange={handleDateTimeChange} />
+                {/* <h1>Selected Date and Time: {JSON.stringify(selectedDateTime)}</h1> */}
+              </div>
+            )}
 
-      {viewMode === "auto" && (
-        <div className="">
-        {/* FloatInput controlled by parent */}
-        <FloatInput
-          minValue={minValue}
-          maxValue={maxValue}
-          onMinChange={handleMinChange}
-          onMaxChange={handleMaxChange}
-        />
-        {/* You can now use minValue & maxValue here */}
-
-      </div>
-      )}
-
-
-
-      {viewMode === "manual"&&(
-        <div className="flex flex-col ">
-        {/* Buttons for selecting 'Now' or 'Other' */}
-        <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base mt-3">
-        <div
-          className={`flex xl:w-1/6 py-2 xl:px-1 px-4 justify-center items-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
-            dateMode === "now"
-              ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-              : "bg-gray-400"
-          }`}
-          onClick={() => setDateMode("now")}
-        >
-          <button>Now</button>
-        </div>
-        <div
-          className={`flex xl:w-1/6 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
-            dateMode === "schedule"
-              ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-              : "bg-gray-400"
-          }`}
-          onClick={() => setDateMode("schedule")}
-        >
-          <button>Schedule</button>
-        </div>
-      </div>
-
-        {/* Conditionally render the components */}
-        <div className="flex flex-col items-center mt-1">
-          {dateMode === "schedule" && (
+            {/* Always show TimeSelector */}
             <div className="w-full max-w-md">
-              <DateTimeInput onDateTimeChange={handleDateTimeChange} />
-              <h1>Selected Date and Time: {JSON.stringify(selectedDateTime)}</h1>
+            <TimeSelector onTimeChange={handleTimeChange} />
+            {/* <div className="mt-4 text-xl">
+          Selected Time: {selectedTime < 1 ? `${(selectedTime * 60).toFixed(0)} min` : `${Math.floor(selectedTime)} hrs ${((selectedTime - Math.floor(selectedTime)) * 60).toFixed(0)} min`}
+        </div> */}
+        {/* {selectedTime} */}
             </div>
-          )}
-
-          {/* Always show TimeSelector */}
-          <div className="w-full max-w-md">
-          <TimeSelector onTimeChange={handleTimeChange} />
-          {/* <div className="mt-4 text-xl">
-        Selected Time: {selectedTime < 1 ? `${(selectedTime * 60).toFixed(0)} min` : `${Math.floor(selectedTime)} hrs ${((selectedTime - Math.floor(selectedTime)) * 60).toFixed(0)} min`}
-      </div> */}
           </div>
         </div>
-      </div>
 
-      )}
+              )}
               {/* Add buttons to control actuator mode */}
-              <div className="mt-4 flex space-x-4">
+              <div className="mt-4 flex gap-1">
                 <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
-                  onClick={() => handleActuatorModeChange("active")}
-                >
-                  Activate
+    className="bg-gradient-to-r from-green-400 to-green-600 text-white w-1/2 py-2 rounded-s-3xl shadow hover:from-green-500 hover:to-green-700 transition-all duration-300 ease-in-out"
+    onClick={() => {
+      // if (viewMode === "auto") {
+      //   handleActuatorModeChange("active");
+      // }
+      if (dateMode === "schedule") {
+        handleActuatorModeChange("scheduled");
+      }
+      else {
+        handleActuatorModeChange("active");
+      }
+    }}
+  >
+      Activate
                 </button>
                 <button
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600"
-                  onClick={() => handleActuatorModeChange("inactive")}
-                >
-                  Deactivate
+      className="bg-gradient-to-l from-red-400 to-red-600 text-white w-1/2 py-2 rounded-e-3xl shadow hover:from-red-500 hover:to-red-700 transition-all duration-300 ease-in-out"
+      onClick={() => handleActuatorModeChange("inactive")}
+    >
+      Deactivate
                 </button>
               </div>
             </div>
-            ) : (
-              <div className="border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-full text-center justify-center items-center flex bg-gray-200 p-4">Select a actuator from the actuators list to make them work.</div>
-            )}</div>
-
-
-
+              ) : (
+                <div className="border-2 xl:h-[calc(100vh-36rem)] border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-full text-center justify-center items-center flex bg-gray-200 p-4">Select a Pump from list to make them work.</div>
+              )}
           </div>
-</div>
+
+          {/* upcoming processes container */}
+          <div
+  className={`xl:h-[calc(100vh-49rem)] h-fit mt-4 p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-ful ${
+    !isLoading && actuators.filter((actuator) => actuator.actuator_status === 'scheduled').length === 0
+      ? 'bg-gray-200 flex items-center justify-center'
+      : ''
+  }`}
+>
+  {isLoading ? (
+    <p className="text-center text-gray-500">Loading irrigation status...</p>
+  ) : (
+    (() => {
+      const scheduledActuators = actuators.filter(
+        (actuator) => actuator.actuator_status === 'scheduled'
+      );
+
+      if (scheduledActuators.length === 0) {
+        return (
+          <p className="text-center text-black">
+            You don't have any upcoming irrigation processes.
+          </p>
+        );
+      }
+
+      return (
+        <div className="w-full">
+          <h2 className="text-xl font-semibold text-gray-800 mb-1">
+            Upcoming Irrigation Processes
+          </h2>
+          <div className="flex flex-col">
+            {scheduledActuators.map((actuator) => (
+              <div
+                key={actuator.actuator_id}
+                className="p-3 bg-gray-100 rounded-lg shadow-md w-full"
+              >
+                <div className="flex items-center justify-between mr-2">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {actuator.actuator_name}
+                  </h3>
+                  <span
+                    className={`text-sm font-medium px-2 py-1 rounded-full ${
+                      actuator.actuator_status === 'scheduled'
+                        ? 'bg-blue-100 text-blue-700'
+                        : ''
+                    }`}
+                  >
+                    {actuator.actuator_status}
+                  </span>
+                </div>
+
+                <div className="text-sm text-gray-600 mt-1">
+                  <p>
+                    <strong>Location:</strong> {actuator.actuator_location}
+                  </p>
+
+                  {(actuator.min_actuator_value !== 0 ||
+                    actuator.max_actuator_value !== 0) && (
+                    <p>
+                      <strong>Run Automatic when:</strong>{' '}
+                      {actuator.min_actuator_value}-{actuator.max_actuator_value}
+                    </p>
+                  )}
+
+                  {actuator.time !== 0 && (
+                    <p>
+                      <strong>Run for:</strong>{' '}
+                      {actuator.time < 1
+                        ? `${(actuator.time * 60).toFixed(0)} min`
+                        : `${Math.floor(actuator.time)} hrs ${(
+                            (actuator.time - Math.floor(actuator.time)) *
+                            60
+                          ).toFixed(0)} min`}
+                    </p>
+                  )}
+
+                  <p>
+                    <strong>Timestamp:</strong>{' '}
+                    {new Date(actuator.after).toLocaleString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true,
+                    })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    })()
+  )}
+          </div>
+        </div>
+
+        {/* third column */}
+        <div className="my-2 xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)] ">
+          <div className="p-4 border-2 xl:h-[calc(100vh-19rem)] h-fit border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full">
+          hii
+          </div>
+          <div className="h-20 xl:h-0">&nbsp;</div>
+        </div>
+
+      </div>
     </div>
+  </div>
   );
 };
 

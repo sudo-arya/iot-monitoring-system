@@ -188,7 +188,7 @@ useEffect(() => {
   };
 
   return (
-    <div className="p-4 flex flex-col items-center w-full max-w-md">
+    <div className="p-2 flex flex-col items-center w-full max-w-md">
       {/* Display selected time */}
       <div className="text-center text-lg font-semibold text-gray-800">
         Run for : <span className="text-blue-600">{displayTime}</span>
