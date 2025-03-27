@@ -16,6 +16,7 @@ const Irrigation = () => {
     // eslint-disable-next-line
     const [isLoading, setIsLoading] = useState(false); // Loading state
     const [actuators, setActuators] = useState([]);
+    const [pumps, setPumps] = useState([]);
     const [actuatorsList, setActuatorsList] = useState([]);const [selectedActuator, setSelectedActuator] = useState(null); // State to store selected actuator
   const [viewMode, setViewMode] = useState("auto"); // "hourly" or "weekly"
   const [dateMode, setDateMode] = useState("now"); // 'now' or 'other'
@@ -184,6 +185,15 @@ const Irrigation = () => {
   };
 
 
+  const viewModeChange = (selectedMode) => {
+    setViewMode(selectedMode); // Set the selected location in the parent
+  };
+
+  const viewModeChang = (selectedMode) => {
+    setViewMode(selectedMode); // Set the selected location in the parent
+  };
+
+
   // Add this function to send actuator mode change request
   const handleActuatorModeChange = async (mode) => {
     if (!selectedActuator) {
@@ -215,20 +225,35 @@ let jsDate = new Date(isoDate);
 // Create the MySQL timestamp string (YYYY-MM-DD HH:MM:SS)
 let mysqlTimestamp = `${jsDate.getFullYear()}-${String(jsDate.getMonth() + 1).padStart(2, '0')}-${String(jsDate.getDate()).padStart(2, '0')} ${String(jsDate.getHours()).padStart(2, '0')}:${String(jsDate.getMinutes()).padStart(2, '0')}:${String(jsDate.getSeconds()).padStart(2, '0')}`;
 
-if (mode==="inactive") {
+if (mode === "inactive") {
   updatedMinValue = 0;
   updatedMaxValue = 0;
   updatedSelectedTime = 0;
   mysqlTimestamp = currentTimestamp;
 }
+// else if(mode !=="scheduled"){
+//   updatedMinValue = 0;
+//   updatedMaxValue = 0;
+// }
 else if (viewMode === "manual") {
-  updatedMinValue = 0;
-  updatedMaxValue = 0;
-  if (dateMode==="now") {
-    mysqlTimestamp=currentTimestamp
+  if (dateMode === "now") {
+    updatedMinValue = 0;
+    updatedMaxValue = 0;
+    mysqlTimestamp = currentTimestamp;
+  } else if (dateMode === "schedule") {
+    updatedMinValue = 0;
+    updatedMaxValue = 0;
   }
 
-} else if (viewMode === "auto") {
+}else if (viewMode === "auto") {
+  // updatedMinValue = 0;
+  // updatedMaxValue = 0;
+  // setViewMode="auto";
+  updatedSelectedTime = 0;
+  mysqlTimestamp = currentTimestamp;
+}else {
+  updatedMinValue = 0;
+  updatedMaxValue = 0;
   updatedSelectedTime = 0;
   mysqlTimestamp = currentTimestamp;
 }
@@ -265,6 +290,40 @@ else if (viewMode === "manual") {
     }
   };
 
+
+  useEffect(() => {
+    const eventSource = new EventSource(
+      `http://localhost:5000/current-actuator-data?user_id=${userId}`
+    );
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("Data received from SSE:", data);
+
+        if (Array.isArray(data)) {
+          setPumps(data);
+        } else {
+          setError("Invalid data format received.");
+        }
+      } catch (err) {
+        console.error("Error parsing actuator data:", err);
+        setError("Error parsing actuator data.");
+      }
+      setIsLoading(false);
+    };
+
+    eventSource.onerror = () => {
+      setError("Error connecting to the server.");
+      eventSource.close();
+    };
+
+    sseSourceRef.current = eventSource;
+
+    return () => {
+      sseSourceRef.current?.close();
+    };
+  }, [userId]);
 
 
   return (
@@ -469,7 +528,7 @@ else if (viewMode === "manual") {
                 ? "bg-gradient-to-r from-blue-500 to-indigo-500"
                 : "bg-gray-400"
             }`}
-            onClick={() => setViewMode("auto")}
+            onClick={() => viewModeChange("auto")}
           >
             <button>Auto Irrigation</button>
           </div>
@@ -480,7 +539,7 @@ else if (viewMode === "manual") {
                 ? "bg-gradient-to-r from-blue-500 to-indigo-500"
                 : "bg-gray-400"
             }`}
-            onClick={() => setViewMode("manual")}
+            onClick={() => viewModeChange("manual")}
           >
             <button>Manual Irrigation</button>
           </div>
@@ -491,11 +550,12 @@ else if (viewMode === "manual") {
           <div className="">
           {/* FloatInput controlled by parent */}
           <FloatInput
-            minValue={minValue}
-            maxValue={maxValue}
-            onMinChange={handleMinChange}
-            onMaxChange={handleMaxChange}
-          />
+  key={viewMode} // Forces re-render when viewMode changes
+  minValue={minValue}
+  maxValue={maxValue}
+  onMinChange={handleMinChange}
+  onMaxChange={handleMaxChange}
+/>
           {/* You can now use minValue & maxValue here */}
   {/* {minValue}/{maxValue} */}
         </div>
@@ -556,12 +616,16 @@ else if (viewMode === "manual") {
                 <button
     className="bg-gradient-to-r from-green-400 to-green-600 text-white w-1/2 py-2 rounded-s-3xl shadow hover:from-green-500 hover:to-green-700 transition-all duration-300 ease-in-out"
     onClick={() => {
-      // if (viewMode === "auto") {
-      //   handleActuatorModeChange("active");
-      // }
+
       if (dateMode === "schedule") {
         handleActuatorModeChange("scheduled");
       }
+      // else if (dateMode === "now") {
+      //   handleActuatorModeChange("now");
+      // }
+      // if (viewMode === "auto") {
+      //   handleActuatorModeChange("active");
+      // }
       else {
         handleActuatorModeChange("active");
       }
@@ -583,11 +647,12 @@ else if (viewMode === "manual") {
           </div>
 
           {/* upcoming processes container */}
-          <div
-  className={`xl:h-[calc(100vh-49rem)] h-fit mt-4 p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full h-ful ${
-    !isLoading && actuators.filter((actuator) => actuator.actuator_status === 'scheduled').length === 0
-      ? 'bg-gray-200 flex items-center justify-center'
-      : ''
+          <div className={`xl:h-[calc(100vh-49rem)] h-[400px] mt-4 p-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full ${
+    !isLoading &&
+    actuators.filter((actuator) => actuator.actuator_status === "scheduled")
+      .length === 0
+      ? "bg-gray-200 flex items-center justify-center"
+      : "flex flex-col"
   }`}
 >
   {isLoading ? (
@@ -595,7 +660,7 @@ else if (viewMode === "manual") {
   ) : (
     (() => {
       const scheduledActuators = actuators.filter(
-        (actuator) => actuator.actuator_status === 'scheduled'
+        (actuator) => actuator.actuator_status === "scheduled"
       );
 
       if (scheduledActuators.length === 0) {
@@ -607,15 +672,16 @@ else if (viewMode === "manual") {
       }
 
       return (
-        <div className="w-full">
+        <div className="w-full flex flex-col flex-1">
           <h2 className="text-xl font-semibold text-gray-800 mb-1">
             Upcoming Irrigation Processes
           </h2>
-          <div className="flex flex-col">
+          {/* Scrollable list container */}
+          <div className="flex-1 overflow-y-auto pr-2">
             {scheduledActuators.map((actuator) => (
               <div
                 key={actuator.actuator_id}
-                className="p-3 bg-gray-100 rounded-lg shadow-md w-full"
+                className="p-3 bg-gray-100 rounded-lg shadow-md w-full mb-2"
               >
                 <div className="flex items-center justify-between mr-2">
                   <h3 className="text-lg font-semibold text-gray-800">
@@ -623,9 +689,9 @@ else if (viewMode === "manual") {
                   </h3>
                   <span
                     className={`text-sm font-medium px-2 py-1 rounded-full ${
-                      actuator.actuator_status === 'scheduled'
-                        ? 'bg-blue-100 text-blue-700'
-                        : ''
+                      actuator.actuator_status === "scheduled"
+                        ? "bg-blue-100 text-blue-700"
+                        : ""
                     }`}
                   >
                     {actuator.actuator_status}
@@ -640,14 +706,14 @@ else if (viewMode === "manual") {
                   {(actuator.min_actuator_value !== 0 ||
                     actuator.max_actuator_value !== 0) && (
                     <p>
-                      <strong>Run Automatic when:</strong>{' '}
+                      <strong>Run Automatic when:</strong>{" "}
                       {actuator.min_actuator_value}-{actuator.max_actuator_value}
                     </p>
                   )}
 
                   {actuator.time !== 0 && (
                     <p>
-                      <strong>Run for:</strong>{' '}
+                      <strong>Run for:</strong>{" "}
                       {actuator.time < 1
                         ? `${(actuator.time * 60).toFixed(0)} min`
                         : `${Math.floor(actuator.time)} hrs ${(
@@ -658,13 +724,13 @@ else if (viewMode === "manual") {
                   )}
 
                   <p>
-                    <strong>Timestamp:</strong>{' '}
-                    {new Date(actuator.after).toLocaleString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
+                    <strong>Scheduled For:</strong>{" "}
+                    {new Date(actuator.after).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
                       hour12: true,
                     })}
                   </p>
@@ -676,17 +742,102 @@ else if (viewMode === "manual") {
       );
     })()
   )}
-          </div>
+</div>
+
         </div>
 
         {/* third column */}
-        <div className="my-2 xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)] ">
-          <div className="p-4 border-2 xl:h-[calc(100vh-19rem)] h-fit border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full">
-          hii
-          </div>
-          <div className="h-20 xl:h-0">&nbsp;</div>
-        </div>
+        <div className="my-2 xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]">
+  <div
+    className={`p-4 border-2 xl:h-[calc(100vh-19rem)] h-[500px] border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-full ${
+      pumps.length === 0
+        ? "bg-gray-200 flex items-center justify-center"
+        : "flex flex-col"
+    }`}
+  >
+    {pumps.length === 0 ? (
+      <p className="text-center text-black">
+        You don't have any history of irrigation processes.
+      </p>
+    ) : (
+      <>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">History</h2>
 
+        {isLoading && <p className="text-gray-500">Loading actuator data...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+
+        {/* Scrollable list container */}
+        <div className="flex-1 overflow-y-auto pr-2">
+          <ul className="space-y-4">
+            {pumps.map((pump) => (
+              <li
+                key={pump.actuator_id}
+                className="p-4 border rounded-lg shadow-md bg-white hover:shadow-lg transition"
+              >
+                <h3 className="text-lg font-semibold text-blue-600">
+                  {pump.actuator_name} ({pump.actuator_id})
+                </h3>
+
+                <p className="text-gray-700">
+                  <strong>Status:</strong>{" "}
+                  {/* Status Badge */}
+                  <span
+                    className={`text-sm font-medium px-2 py-1 rounded-full
+                      ${pump.actuator_status === "active" && "bg-green-100 text-green-700"}
+                      ${pump.actuator_status === "inactive" && "bg-gray-100 text-gray-700"}
+                      ${pump.actuator_status === "scheduled" && "bg-blue-100 text-blue-700"}
+                      ${pump.actuator_status === "completed" && "bg-purple-100 text-purple-700"}
+                      ${pump.actuator_status === "cancelled" && "bg-red-100 text-red-700"}
+                    `}
+                  >
+                    {pump.actuator_status.charAt(0).toUpperCase() +
+                      pump.actuator_status.slice(1)}
+                  </span>
+                </p>
+
+                {pump.min_actuator_value !== 0 || pump.max_actuator_value !== 0 ? (
+                  <p className="text-gray-700">
+                    <strong>Run Automatic when :</strong> {pump.min_actuator_value} -{" "}
+                    {pump.max_actuator_value}
+                  </p>
+                ) : null}
+
+                {pump.time !== 0 && (
+                  <p>
+                    <strong>Run for:</strong>{" "}
+                    {pump.time < 1
+                      ? `${(pump.time * 60).toFixed(0)} min`
+                      : `${Math.floor(pump.time)} hrs ${(pump.time - Math.floor(pump.time)) * 60} min`}
+                  </p>
+                )}
+
+                {pump.actuator_status === "scheduled" && (
+                  <p>
+                    <strong>Scheduled for:</strong>{" "}
+                    {new Date(pump.after).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}
+                  </p>
+                )}
+
+                <p className="text-gray-500 text-sm">
+                  <strong>Updated at:</strong>{" "}
+                  {new Date(pump.timestamp).toLocaleString()}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </>
+    )}
+  </div>
+  <div className="h-20 xl:h-0">&nbsp;</div>
+</div>
       </div>
     </div>
   </div>
