@@ -586,7 +586,7 @@ app.get('/get-actuators', (req, res) => {
 
 // Endpoint to insert or update actuator data
 app.post('/actuator-mode', (req, res) => {
-  const { user_id, actuator_id, min_actuator_value, max_actuator_value, actuator_status, time, after } = req.body;
+  const { user_id, actuator_id, min_actuator_value, max_actuator_value, actuator_status, time, after,sensor_id, sensor_type } = req.body;
 
   if (!user_id || !actuator_id) {
     return res.status(400).json({ error: 'User ID and Actuator ID are required' });
@@ -600,7 +600,9 @@ app.post('/actuator-mode', (req, res) => {
     actuator_status: 'inactive',
     time: 0,
     after: new Date(),
-    updated_at: new Date()
+    updated_at: new Date(),
+    sensor_id:null,
+    sensor_type:null,
   };
 
   const newData = {
@@ -609,7 +611,9 @@ app.post('/actuator-mode', (req, res) => {
     actuator_status: actuator_status ?? defaultValues.actuator_status,
     time: time ?? defaultValues.time,
     after: after ?? defaultValues.after,
-    updated_at: defaultValues.updated_at
+    updated_at: defaultValues.updated_at,
+    sensor_id: sensor_id ??null,
+    sensor_type: sensor_type ??null
   };
 
   // Step 1: Check the current actuator status before updating
@@ -624,23 +628,28 @@ app.post('/actuator-mode', (req, res) => {
     const currentStatus = result.length > 0 ? result[0].actuator_status : null;
     const actuatorName = result.length > 0 ? result[0].actuator_name : 'Unknown'; // Default name if not found
     console.log(`Current actuator status: ${currentStatus}, New status: ${newData.actuator_status}, Actuator Name: ${actuatorName}`);
+    console.log("Sensor ID being inserted/updated: ---------", newData.sensor_id);
+
     // Step 2: Update the actuator table
     const updateActuatorTableQuery = `
       INSERT INTO ${user_id}_actuator_table
-      (actuator_id, min_actuator_value, max_actuator_value, actuator_status, time, after, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      (actuator_id, min_actuator_value, max_actuator_value, actuator_status, time, after, updated_at,sensor_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
         min_actuator_value = VALUES(min_actuator_value),
         max_actuator_value = VALUES(max_actuator_value),
         actuator_status = VALUES(actuator_status),
         time = VALUES(time),
         after = VALUES(after),
-        updated_at = VALUES(updated_at)
+        updated_at = VALUES(updated_at),
+        sensor_id = COALESCE(VALUES(sensor_id), NULL)
+
+
     `;
 
     db.query(
       updateActuatorTableQuery,
-      [actuator_id, newData.min_actuator_value, newData.max_actuator_value, newData.actuator_status, newData.time, newData.after, newData.updated_at],
+      [actuator_id, newData.min_actuator_value, newData.max_actuator_value, newData.actuator_status, newData.time, newData.after, newData.updated_at,newData.sensor_id],
       (err, result) => {
         if (err) {
           console.error('Error updating the actuator table:', err);
@@ -655,11 +664,11 @@ app.post('/actuator-mode', (req, res) => {
 
           const insertActuatorDataQuery = `
             INSERT INTO 10000001_actuator_data
-            (actuator_id, actuator_status, timestamp, after, max_actuator_value, min_actuator_value, actuator_name, time)
-            VALUES (?, 'cancelled', ?, ?, ?, ?, ?, ?)
+            (actuator_id, actuator_status, timestamp, after, max_actuator_value, min_actuator_value, actuator_name, time, sensor_id, sensor_name)
+            VALUES (?, 'cancelled', ?, ?, ?, ?, ?, ?, NULL, NULL)
           `;
 
-          db.query(insertActuatorDataQuery, [actuator_id, newData.updated_at, newData.after, newData.max_actuator_value, newData.min_actuator_value, actuatorName, newData.time], (err, result) => {
+          db.query(insertActuatorDataQuery, [actuator_id, newData.updated_at, newData.after, newData.max_actuator_value, newData.min_actuator_value, actuatorName, newData.time, newData.sensor_id, newData.sensor_type], (err, result) => {
             if (err) {
               console.error('Error inserting into actuator_data:', err);
               return res.status(500).json({ error: 'Error inserting into actuator_data' });
@@ -674,11 +683,11 @@ app.post('/actuator-mode', (req, res) => {
 
           const updateActuatorDataQuery = `
             INSERT INTO 10000001_actuator_data
-            (actuator_id, actuator_status, timestamp, after, max_actuator_value, min_actuator_value, actuator_name, time)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (actuator_id, actuator_status, timestamp, after, max_actuator_value, min_actuator_value, actuator_name, time, sensor_id, sensor_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
 
-          db.query(updateActuatorDataQuery, [actuator_id, newData.actuator_status, newData.updated_at, newData.after, newData.max_actuator_value, newData.min_actuator_value, actuatorName, newData.time], (err, result) => {
+          db.query(updateActuatorDataQuery, [actuator_id, newData.actuator_status, newData.updated_at, newData.after, newData.max_actuator_value, newData.min_actuator_value, actuatorName, newData.time,newData.sensor_id,newData.sensor_type], (err, result) => {
             if (err) {
               console.error('Error updating actuator_data:', err);
               return res.status(500).json({ error: 'Error updating actuator_data' });
@@ -713,7 +722,7 @@ app.get('/current-actuator-data', (req, res) => {
   let lastSentData = null;
 
   const sendActuatorData = () => {
-    const query = `SELECT actuator_data_id, actuator_id, actuator_status, timestamp, after, max_actuator_value, min_actuator_value, actuator_name, time FROM ${user_id}_actuator_data ORDER BY timestamp DESC LIMIT 100;`;
+    const query = `SELECT actuator_data_id, actuator_id, actuator_status, timestamp, after, max_actuator_value, min_actuator_value, actuator_name, time, sensor_name FROM ${user_id}_actuator_data ORDER BY timestamp DESC LIMIT 30;`;
 
     db.query(query, (err, results) => {
       if (err) {
@@ -733,6 +742,7 @@ app.get('/current-actuator-data', (req, res) => {
           min_actuator_value: pump.min_actuator_value,
           actuator_name: pump.actuator_name,
           time: pump.time,
+          sensor_name:pump.sensor_name,
         }));
 
         // Only send data if it's different from the last sent data
@@ -765,7 +775,30 @@ app.get('/current-actuator-data', (req, res) => {
 
 
 
+app.get("/get-available-sensors", (req, res) => {
+  const { user_id, pi_id } = req.query;
 
+  if (!user_id || !pi_id) {
+    return res.status(400).json({ error: "user_id and pi_id are required" });
+  }
+
+  const tableName = `${user_id}_sensors_table`;
+
+  const query = `
+    SELECT sensor_id, sensor_type, min_sensor_value, max_sensor_value, sensor_unit
+    FROM ??
+    WHERE pi_id = ? AND sensor_status = 'normal';
+  `;
+
+  db.query(query, [tableName, pi_id], (err, results) => {
+    if (err) {
+      console.error("Database query error: ", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    res.json(results);
+  });
+});
 
 
 

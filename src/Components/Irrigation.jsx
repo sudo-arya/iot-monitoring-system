@@ -28,6 +28,7 @@ const Irrigation = () => {
   const [minValue, setMinValue] = useState(0.0);
   const [maxValue, setMaxValue] = useState(100.0);
   const [selectedTime, setSelectedTime] = useState(0); // State to hold selected time
+  const [selectedSensorData, setSelectedSensorData] = useState(0);
   const [selectedDateTime, setSelectedDateTime] = useState({
     date: null,
     hours: null,
@@ -225,12 +226,22 @@ let jsDate = new Date(isoDate);
 // Create the MySQL timestamp string (YYYY-MM-DD HH:MM:SS)
 let mysqlTimestamp = `${jsDate.getFullYear()}-${String(jsDate.getMonth() + 1).padStart(2, '0')}-${String(jsDate.getDate()).padStart(2, '0')} ${String(jsDate.getHours()).padStart(2, '0')}:${String(jsDate.getMinutes()).padStart(2, '0')}:${String(jsDate.getSeconds()).padStart(2, '0')}`;
 
+
 if (mode === "inactive") {
   updatedMinValue = 0;
   updatedMaxValue = 0;
   updatedSelectedTime = 0;
   mysqlTimestamp = currentTimestamp;
+
+  // Instead of modifying selectedSensorData directly
+  setSelectedSensorData(prevData => ({
+    ...prevData,
+    sensor_id: null,
+    sensor_type: null,
+  }));
 }
+
+
 // else if(mode !=="scheduled"){
 //   updatedMinValue = 0;
 //   updatedMaxValue = 0;
@@ -244,18 +255,26 @@ else if (viewMode === "manual") {
     updatedMinValue = 0;
     updatedMaxValue = 0;
   }
-
+  // selectedSensorData.sensor_id=0;
 }else if (viewMode === "auto") {
   // updatedMinValue = 0;
   // updatedMaxValue = 0;
   // setViewMode="auto";
   updatedSelectedTime = 0;
   mysqlTimestamp = currentTimestamp;
+    // setSelectedSensorData.sensor_id=selectedSensorData.sensor_id;
 }else {
   updatedMinValue = 0;
   updatedMaxValue = 0;
   updatedSelectedTime = 0;
   mysqlTimestamp = currentTimestamp;
+  // selectedSensorData.sensor_id=null;
+
+  setSelectedSensorData(prevData => ({
+    ...prevData,
+    sensor_id: null,
+    sensor_type: null,
+  }));
 }
 
     try {
@@ -270,9 +289,11 @@ else if (viewMode === "manual") {
           pi_id: piId, // Include pi_id
           actuator_status: mode,
           min_actuator_value: updatedMinValue,
-      max_actuator_value: updatedMaxValue,
-      time: updatedSelectedTime,
-      after: mysqlTimestamp,
+          max_actuator_value: updatedMaxValue,
+          time: updatedSelectedTime,
+          after: mysqlTimestamp,
+          sensor_id:selectedSensorData.sensor_id,
+          sensor_type:selectedSensorData.sensor_type,
         }),
       });
 
@@ -325,6 +346,11 @@ else if (viewMode === "manual") {
     };
   }, [userId]);
 
+  // Callback function to handle the selected sensor data
+  const handleSensorSelection = (sensor) => {
+    setSelectedSensorData(sensor);
+    console.log("Selected Sensor Data:", sensor); // You can use the data here
+  };
 
   return (
     <div className="w-full h-full flex  ">
@@ -549,14 +575,24 @@ else if (viewMode === "manual") {
               {viewMode === "auto" && (
           <div className="">
           {/* FloatInput controlled by parent */}
-          <FloatInput
+          <FloatInput user_id={userId} pi_id={selectedLocation?.piId}
   key={viewMode} // Forces re-render when viewMode changes
   minValue={minValue}
   maxValue={maxValue}
   onMinChange={handleMinChange}
   onMaxChange={handleMaxChange}
+  onSensorChange={handleSensorSelection}  /* Passing the callback */
 />
+{/* <p>Sensor ID: {selectedSensorData.sensor_id}</p> */}
           {/* You can now use minValue & maxValue here */}
+          {/* {selectedSensorData && (
+        <div className="mt-4">
+          <h2 className="text-lg font-semibold">Selected Sensor:</h2>
+          <p>Sensor ID: {selectedSensorData.sensor_id}</p>
+          <p>Sensor Type: {selectedSensorData.sensor_type}</p>
+          <p>Sensor Unit: {selectedSensorData.sensor_unit}</p>
+        </div>
+      )} */}
   {/* {minValue}/{maxValue} */}
         </div>
               )}
@@ -797,8 +833,8 @@ else if (viewMode === "manual") {
 
                 {pump.min_actuator_value !== 0 || pump.max_actuator_value !== 0 ? (
                   <p className="text-gray-700">
-                    <strong>Run Automatic when :</strong> {pump.min_actuator_value} -{" "}
-                    {pump.max_actuator_value}
+                    <strong>Run Automatic when :</strong>{pump.sensor_name} ({pump.min_actuator_value} -{" "}
+                    {pump.max_actuator_value})
                   </p>
                 ) : null}
 

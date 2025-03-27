@@ -9,7 +9,7 @@ const Pest = () => {
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
           <FaLightbulb className="text-6xl text-gray-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-500">Future Scope</h1>
+          <h1 className="text-3xl font-bold text-gray-500">Pest Protection will be added after further evaluation.</h1>
         </div>
       </div>
     </div>
