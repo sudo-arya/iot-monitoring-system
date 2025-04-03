@@ -483,7 +483,7 @@ app.get('/current-irrigation-status', (req, res) => {
 
   const sendIrrigationStatus = () => {
     const query = `SELECT actuator_id, actuator_name, actuator_location, min_actuator_value,
-                          max_actuator_value, actuator_status, time,after
+                          max_actuator_value, actuator_status, time,after,sensor_name
                    FROM ${user_id}_actuator_table`;
 
     db.query(query, [user_id], (err, results) => {
@@ -504,6 +504,7 @@ app.get('/current-irrigation-status', (req, res) => {
           actuator_status:actuator.actuator_status,
           time: actuator.time,
           after:actuator.after,
+          sensor_name:actuator.sensor_name,
         }));
 
         // Check if the current data differs from the last sent data
@@ -633,8 +634,8 @@ app.post('/actuator-mode', (req, res) => {
     // Step 2: Update the actuator table
     const updateActuatorTableQuery = `
       INSERT INTO ${user_id}_actuator_table
-      (actuator_id, min_actuator_value, max_actuator_value, actuator_status, time, after, updated_at,sensor_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (actuator_id, min_actuator_value, max_actuator_value, actuator_status, time, after, updated_at,sensor_id,sensor_name)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
         min_actuator_value = VALUES(min_actuator_value),
         max_actuator_value = VALUES(max_actuator_value),
@@ -642,14 +643,14 @@ app.post('/actuator-mode', (req, res) => {
         time = VALUES(time),
         after = VALUES(after),
         updated_at = VALUES(updated_at),
-        sensor_id = COALESCE(VALUES(sensor_id), NULL)
-
+        sensor_id = COALESCE(VALUES(sensor_id), NULL),
+        sensor_name = COALESCE(VALUES(sensor_name), NULL)
 
     `;
 
     db.query(
       updateActuatorTableQuery,
-      [actuator_id, newData.min_actuator_value, newData.max_actuator_value, newData.actuator_status, newData.time, newData.after, newData.updated_at,newData.sensor_id],
+      [actuator_id, newData.min_actuator_value, newData.max_actuator_value, newData.actuator_status, newData.time, newData.after, newData.updated_at,newData.sensor_id, newData.sensor_type],
       (err, result) => {
         if (err) {
           console.error('Error updating the actuator table:', err);
@@ -799,6 +800,158 @@ app.get("/get-available-sensors", (req, res) => {
     res.json(results);
   });
 });
+
+
+
+// Sensor Management API - Fetch ESP Data
+app.post('/esp-data', (req, res) => {
+  const { user_id } = req.body;  // Accessing the JSON body
+
+  // Your existing logic
+  const tableName = `${user_id}_esp_table`;
+
+  // Validate user_id to prevent SQL injection
+  if (!/^\d+$/.test(user_id)) {
+      return res.status(400).json({ error: "Invalid user_id format" });
+  }
+
+  const query = `SELECT esp_id, pi_id, esp_status, created_at, updated_at, latitude, longitude, esp_name FROM ??`;
+
+  db.query(query, [tableName], (err, results) => {
+      if (err) {
+          console.error("Database error:", err);
+          return res.status(500).json({ error: "Database query failed" });
+      }
+
+      res.json(results);
+  });
+});
+
+// for management showing
+
+// Endpoint to get all sensors for a given user_id
+app.get("/get-all-sensors", (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).json({ error: "user_id is required" });
+  }
+
+  const tableName = `${user_id}_sensors_table`;
+
+  const query = `
+    SELECT sensor_id, sensor_type, min_sensor_value, max_sensor_value, sensor_unit, pi_id, sensor_status, updated_at
+    FROM ??;
+  `;
+
+  db.query(query, [tableName], (err, results) => {
+    if (err) {
+      console.error("Database query error: ", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.get("/get-all-esp", (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).json({ error: "user_id is required" });
+  }
+
+  const tableName = `${user_id}_esp_table`;
+
+  const query = `
+    SELECT esp_id, pi_id, esp_status, created_at, updated_at, latitude, longitude, esp_name
+    FROM ??;
+  `;
+
+  db.query(query, [tableName], (err, results) => {
+    if (err) {
+      console.error("Database query error: ", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.get("/get-all-actuators", (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).json({ error: "user_id is required" });
+  }
+
+  const tableName = `${user_id}_actuator_table`;
+
+  const query = `
+    SELECT actuator_id, actuator_status, updated_at, after,
+           max_actuator_value, min_actuator_value, actuator_name, time, actuator_location, sensor_name
+    FROM ??;
+  `;
+
+  db.query(query, [tableName], (err, results) => {
+    if (err) {
+      console.error("Database query error: ", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.get("/get-all-pi", (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).json({ error: "user_id is required" });
+  }
+
+  const tableName = `${user_id}_pi_table`;
+
+  const query = `
+    SELECT pi_id, pi_name, pi_location, gateway_id, pi_status, created_at, updated_at, latitude, longitude
+    FROM ??;
+  `;
+
+  db.query(query, [tableName], (err, results) => {
+    if (err) {
+      console.error("Database query error: ", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    res.json(results);
+  });
+});
+
+// get gateway data
+// **GET Gateway Data for a User**
+app.get("/get-gateway-data", (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).json({ error: "user_id is required" });
+  }
+
+  const query = "SELECT * FROM gateway_data WHERE user_id = ?";
+
+  db.query(query, [user_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching gateway data:", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "No gateway found for this user" });
+    }
+
+    res.json(results);
+  });
+});
+
 
 
 

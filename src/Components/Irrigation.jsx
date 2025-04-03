@@ -83,7 +83,7 @@ const Irrigation = () => {
 
 
     const userId = localStorage.getItem("userId");
-    console.log("User ID:", userId);
+    // console.log("User ID:", userId);
     const locations = JSON.parse(localStorage.getItem("locations")) || [];
      const [selectedLocation, setSelectedLocation] = useState(null); // State to store selected marker data
       // Update selected location when a marker is clicked
@@ -389,7 +389,7 @@ else if (viewMode === "manual") {
               .map((actuator) => (
                 <div
                   key={actuator.actuator_id}
-                  className="p-2 bg-gray-100 rounded-lg shadow-md w-64 flex-shrink-0"
+                  className="p-2 bg-gray-100 rounded-lg shadow-md w-80 flex-shrink-0"
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="text-xl font-semibold text-gray-800">{actuator.actuator_name}</h3>
@@ -404,7 +404,7 @@ else if (viewMode === "manual") {
                       {/* {actuator.max_actuator_value !== 0 && ( */}
                         {/* <p><strong>Max Value:</strong> {actuator.max_actuator_value}</p> */}
 
-                        <p><strong>Run Automatic when :</strong> {actuator.min_actuator_value}-{actuator.max_actuator_value}</p>
+                        <p><strong>Run Automatic when :</strong>{actuator.sensor_name} ({actuator.min_actuator_value}-{actuator.max_actuator_value})</p>
                       {/* )} */}
                     </>
                     )}
@@ -441,8 +441,6 @@ else if (viewMode === "manual") {
           </div>
         </div>
       </div>
-
-
   )}
       </div>
 
