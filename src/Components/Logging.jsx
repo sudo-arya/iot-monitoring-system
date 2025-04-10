@@ -178,10 +178,12 @@ const Logging = () => {
     }, [data, searchTermLog, sortConfigLog]);
 
   return (
-    <div className="w-full min-h-screen flex">
-      <Sidebar />
+    <div className="w-full h-full flex">
+      <div className="w-full h-full flex">
+        <Sidebar />
+      </div>
 
-      <div className="absolute xl:w-[calc(100vw-6rem)] h-full my-20 ml-20 flex xl:flex-col flex-col px-4">
+      <div className="absolute xl:w-[calc(100vw-6rem)] h-full my-20 ml-20 flex xl:flex-col flex-col px-">
 
         {/* Toast Notification */}
         {toastMessage && (
@@ -200,9 +202,9 @@ const Logging = () => {
         {/* logging component */}
         <div className="flex flex-col md:flex-row md:space-x-4">
           {/* first column  */}
-          <div className="w-full md:w-6/12 xl:h-[calc(100vh-6rem)] mt-4 xl:mt-0">
+          <div className="xl:w-6/12 w-[calc(100vw-6rem)] xl:h-[calc(100vh-6rem)] mt-4 xl:mt-0">
             {/* sensor selection  */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap justify-center xl:p-6 p-1 gap-2">
               {sensorList.map((sensor, index) => (
                 <button
                   key={sensor.sensor_id}
@@ -231,7 +233,7 @@ const Logging = () => {
                 )} */}
 
                 {/* sensor data in tabular format  */}
-              <div className="p-3 border-2 border-indigo-500 rounded-3xl shadow-lg w-full bg-white mt-4 max-h-[450px] overflow-y-auto">
+              <div className="p-3 border-2 border-indigo-500 rounded-3xl shadow-lg w-full bg-white mt-4 max-h-[400px] overflow-y-auto">
                 <h2 className="text-xl font-semibold mb-4 text-gray-700">Sensor Data</h2>
 
                 {/* Search input */}
@@ -338,10 +340,9 @@ const Logging = () => {
                 selectedLocation={selectedLocation}
                 userId={userId}
                 selectedSensorId={selectedLocation.sensorId}
-                // className="mt-0"
               />
             ) : (
-              <div className="overflow-x-auto shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 xl:h-[calc(100vh-25rem)] h-[calc(100vh-24rem)] relative xl:w-full w-[calc(100vw-6rem)] text-center justify-center items-center flex bg-gray-200 mt-4">
+              <div className="overflow-x-auto shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 xl:h-[calc(100vh-28rem)] h-[calc(100vh-24rem)] relative xl:w-full w-[calc(100vw-6rem)] text-center justify-center items-center flex bg-gray-200 mt-4">
                 Select a location from the map to see available sensors.
               </div>
             )}
@@ -349,7 +350,7 @@ const Logging = () => {
 
           {/* second column  */}
           <div className="w-full md:w-6/12 xl:h-[calc(100vh-6rem)] mt-4 xl:mt-0">
-          <div className="p-3 border-2 border-indigo-500 rounded-3xl shadow-lg w-full bg-white mt- xl:h-[calc(100vh-6rem)] overflow-y-auto">
+          <div className="p-3 border-2 border-indigo-500 rounded-3xl shadow-lg w-full bg-white mt- xl:h-[calc(100vh-6rem)] overflow-y-auto ">
       <h2 className="text-xl font-semibold mb-4 text-gray-700">User Logs & Actuator Data</h2>
 
       {/* Search input */}
@@ -425,13 +426,11 @@ const Logging = () => {
       </div>
 
       {/* Card layout for small screens */}
-      <div className="xl:hidden space-y-2 text-sm">
+      <div className="xl:hidden space-y-2 text-sm max-h-[450px]">
         {filteredAndSortedDataLog.map((entry, index) => (
           <div
             key={index}
-            className={`border rounded-md p-4 shadow-sm ${
-              entry.source === "log" ? "bg-blue-50 border-blue-400" : "bg-green-50 border-green-400"
-            }`}
+            className="border rounded-md p-4 bg-white shadow-sm"
           >
             <div className="flex justify-between mb-2">
               <span className="font-semibold text-gray-700">
@@ -453,7 +452,7 @@ const Logging = () => {
                       {entry.status}
                     </span>
                   </p>
-                  <p><strong>Sensor:</strong> {entry.sensor_name} (ID: {entry.sensor_id})</p>
+                  <p><strong>Sensor:</strong> {entry.sensor_name}</p>
                 </>
               )}
             </div>

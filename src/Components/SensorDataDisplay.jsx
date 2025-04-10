@@ -330,8 +330,8 @@ useEffect(() => {
     <div
   className={`mt-6 relative
     ${selectedSensorId
-      ? "xl:h-[calc(100vh-30rem)] h-[calc(100vh-16rem)] xl:w-full w-[calc(100vw-8rem)]"
-      : "xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]"
+      ? "xl:h-[calc(100vh-30rem)] h-fit mb-4 xl:w-full w-[calc(100vw-6rem)]"
+      : "xl:h-[calc(100vh-42rem)] h-fit xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]"
     }`}
 >
       {loading ? (

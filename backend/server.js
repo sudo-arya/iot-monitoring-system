@@ -1054,6 +1054,165 @@ app.post('/get-logs', async (req, res) => {
 
 
 
+// alert apis
+// POST endpoint to create alert
+app.post("/create-alert", async (req, res) => {
+  const { user_id, sensor_id, min_actuator_value, max_actuator_value } = req.body;
+
+  if (!user_id || !sensor_id || min_actuator_value == null || max_actuator_value == null) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const sensorTable = `${user_id}_sensors_table`;
+  const alertTable = `${user_id}_alert_table`;
+
+  try {
+    // Get pi_id and esp_id from sensor table
+    const [sensorRows] = await db.promise().query(
+      `SELECT pi_id, esp_id,sensor_type FROM \`${sensorTable}\` WHERE sensor_id = ?`,
+      [sensor_id]
+    );
+
+    if (sensorRows.length === 0) {
+      return res.status(404).json({ error: "Sensor not found" });
+    }
+
+    const { pi_id, esp_id, sensor_type } = sensorRows[0];
+
+    // Insert or Update the alert
+    await db.promise().query(
+      `INSERT INTO \`${alertTable}\`
+        (pi_id, esp_id, sensor_id,sensor_name, min_actuator_value, max_actuator_value, alert_status, alert_type, alert_message)
+       VALUES (?, ?, ?, ?, ?, ?, 'created', 'Sensor Alert', 'Threshold alert created.')
+       ON DUPLICATE KEY UPDATE
+        pi_id = VALUES(pi_id),
+        esp_id = VALUES(esp_id),
+        sensor_name = VALUES(sensor_name),
+        min_actuator_value = VALUES(min_actuator_value),
+        max_actuator_value = VALUES(max_actuator_value),
+        alert_status = 'created',
+        alert_type = 'Sensor Alert',
+        alert_message = 'Threshold alert updated.'`,
+      [pi_id, esp_id, sensor_id, sensor_type, min_actuator_value, max_actuator_value]
+    );
+
+    return res.status(200).json({ message: "Alert created or updated successfully" });
+
+  } catch (error) {
+    console.error("Error creating/updating alert:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// sse event to show all alert created
+app.get('/get-live-alerts', (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).send('User ID is required');
+  }
+
+  const alertTable = `${user_id}_alert_table`;
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  console.log(`SSE connection established for user_id: ${user_id}`);
+
+  // Track last sent alerts
+  let lastSentAlerts = [];
+
+  // Helper to deeply compare alerts
+  const isAlertChanged = (oldAlerts, newAlerts) => {
+    return JSON.stringify(oldAlerts) !== JSON.stringify(newAlerts);
+  };
+
+  const fetchAndSendIfChanged = () => {
+    const query = `
+      SELECT alert_id, sensor_id, alert_type, alert_status, sensor_name, timestamp, min_actuator_value, max_actuator_value
+      FROM \`${alertTable}\`
+      ORDER BY timestamp DESC
+      LIMIT 50
+    `;
+
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error('Error querying DB:', err);
+        res.write(`event: error\ndata: ${JSON.stringify({ error: 'DB query error' })}\n\n`);
+        return;
+      }
+
+      if (results && results.length > 0) {
+        const newAlerts = results.map(alert => ({
+          alert_id: alert.alert_id,
+          sensor_id: alert.sensor_id,
+          alert_type: alert.alert_type,
+          alert_status: alert.alert_status,
+          sensor_name: alert.sensor_name,
+          timestamp: alert.timestamp,
+          min_actuator_value: alert.min_actuator_value,
+          max_actuator_value: alert.max_actuator_value
+        }));
+
+        if (isAlertChanged(lastSentAlerts, newAlerts)) {
+          res.write(`data: ${JSON.stringify(newAlerts)}\n\n`);
+          lastSentAlerts = newAlerts;
+        }
+      }
+    });
+  };
+
+  const intervalId = setInterval(fetchAndSendIfChanged, 5000);
+
+  // Keep connection alive
+  const keepAlive = setInterval(() => res.write(':\n\n'), 15000);
+
+  req.on('close', () => {
+    console.log(`SSE connection closed for user_id: ${user_id}`);
+    clearInterval(intervalId);
+    clearInterval(keepAlive);
+    res.end();
+  });
+
+  // Send initial data immediately
+  fetchAndSendIfChanged();
+});
+
+
+
+// deletion of alert
+app.delete('/delete-alert', (req, res) => {
+  const { user_id, sensor_id } = req.query;
+
+  if (!user_id || !sensor_id) {
+    return res.status(400).json({ error: 'Both user_id and sensor_id are required' });
+  }
+
+  const alertTable = `${user_id}_alert_table`;
+  const deleteQuery = `DELETE FROM \`${alertTable}\` WHERE sensor_id = ?`;
+
+  db.query(deleteQuery, [sensor_id], (err, result) => {
+    if (err) {
+      console.error('Error deleting alert:', err);
+      return res.status(500).json({ error: 'Failed to delete alert' });
+    }
+
+    if (result.affectedRows > 0) {
+      res.json({ success: true, message: `Deleted alert with sensor_id: ${sensor_id}` });
+    } else {
+      res.status(404).json({ success: false, message: 'No matching alert found to delete' });
+    }
+  });
+});
+
+
+
+
+
+
+
+
 
 
 

@@ -1,37 +1,59 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
-const FloatInput = ({ user_id, pi_id, minValue, maxValue, onMinChange, onMaxChange, onSensorChange }) => {
+const FloatInput = ({ user_id, piId, minValue, maxValue, onMinChange, onMaxChange, onSensorChange,selectedLocation,
+  selectedSensorType }) => {
   const [sensors, setSensors] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState(null);
   const [localMinValue, setLocalMinValue] = useState(minValue);
   const [localMaxValue, setLocalMaxValue] = useState(maxValue);
 
-  
+  let pi_id = piId || selectedLocation?.piId;
 
   // Fetch sensors from the backend
   useEffect(() => {
+    const actualPiId = piId || selectedLocation?.piId;
     const fetchSensors = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/get-available-sensors?user_id=${user_id}&pi_id=${pi_id}`
+          `http://localhost:5000/get-available-sensors?user_id=${user_id}&pi_id=${actualPiId}`
         );
-        console.log(response.data);
         setSensors(response.data);
       } catch (error) {
         console.error("Error fetching sensors:", error);
       }
     };
 
-    fetchSensors();
-  }, [user_id, pi_id]);
+    if (user_id && actualPiId) {
+      fetchSensors();
+    }
+  }, [user_id, piId, selectedLocation]);
+
+
+  // Auto-select sensor based on selectedSensorType
+  useEffect(() => {
+    if (sensors.length > 0 && selectedSensorType) {
+      const matchedSensor = sensors.find(
+        (sensor) => sensor.sensor_type === selectedSensorType
+      );
+      if (matchedSensor) {
+        setSelectedSensor(matchedSensor);
+        setLocalMinValue(matchedSensor.min_sensor_value);
+        setLocalMaxValue(matchedSensor.max_sensor_value);
+        onSensorChange(matchedSensor);
+        onMinChange(matchedSensor.min_sensor_value);
+        onMaxChange(matchedSensor.max_sensor_value);
+      }
+    }
+  }, [sensors, selectedSensorType]);
+
 
   // Handle sensor selection change
-  const handleSensorChange = (event) => {
+  const handleSensorChange = useCallback((event) => {
     const sensorId = event.target.value;
     const sensor = sensors.find((s) => s.sensor_id.toString() === sensorId);
 
-    if (sensor) {
+    if (sensor && sensor.sensor_id !== selectedSensor?.sensor_id) {
       setSelectedSensor(sensor);
       setLocalMinValue(sensor.min_sensor_value);
       setLocalMaxValue(sensor.max_sensor_value);
@@ -41,7 +63,7 @@ const FloatInput = ({ user_id, pi_id, minValue, maxValue, onMinChange, onMaxChan
       onMinChange(sensor.min_sensor_value);
       onMaxChange(sensor.max_sensor_value);
     }
-  };
+  }, [sensors, onSensorChange, onMinChange, onMaxChange]);
 
   const handleMinChange = (event) => {
     const newValue = parseFloat(event.target.value);
@@ -63,31 +85,35 @@ const FloatInput = ({ user_id, pi_id, minValue, maxValue, onMinChange, onMaxChan
     <div className="flex justify-center items-center">
       <div className="bg-white p-4 w-full max-w-md">
         <h2 className="text-2xl font-bold text-center text-gray-800">
-          Select Sensor Range
+          {!selectedSensorType && (<>Select Sensor Range</>)}
+          {selectedSensorType && (<>Select Range to get Alert</>)}
         </h2>
 
         {/* Sensor Dropdown */}
-        <div className="flex flex-col items-center space-y-3 mt-4">
-          <label htmlFor="sensor" className="text-lg font-medium text-gray-700">
-            Select Sensor:
-          </label>
-          <select
-            id="sensor"
-            value={selectedSensor?.sensor_id || ""}
-            onChange={handleSensorChange}
-            className="w-full p-2 border rounded-lg"
-            disabled={sensors.length === 0}
-          >
-            <option value="" disabled hidden>
-              Select a sensor
-            </option>
-            {sensors.map((sensor) => (
-              <option key={sensor.sensor_id} value={sensor.sensor_id}>
-                {sensor.sensor_type}
+        {!selectedSensorType && (
+          <div className="flex flex-col items-center space-y-3 mt-4">
+            <label htmlFor="sensor" className="text-lg font-medium text-gray-700">
+              Select Sensor:
+            </label>
+            <select
+              id="sensor"
+              value={selectedSensor?.sensor_id || ""}
+              onChange={handleSensorChange}
+              className="w-full p-2 border rounded-lg"
+              disabled={sensors.length === 0}
+            >
+              <option value="" disabled hidden>
+                Select a sensor
               </option>
-            ))}
-          </select>
-        </div>
+              {sensors.map((sensor) => (
+                <option key={sensor.sensor_id} value={sensor.sensor_id}>
+                  {sensor.sensor_type}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
 
         {/* Minimum Value Section */}
         <div className="flex flex-col items-center space-y-3">

@@ -545,104 +545,105 @@ else if (viewMode === "manual") {
               </h2>
               <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base mt-3 xl:mt-4">
 
-          {/* auto selector */}
-          <div
-            className={`flex xl:w-1/3 py-2 xl:px-1 px-4 justify-center items-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
-              viewMode === "auto"
-                ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-                : "bg-gray-400"
-            }`}
-            onClick={() => viewModeChange("auto")}
-          >
-            <button>Auto Irrigation</button>
-          </div>
-          {/* manual selector */}
-          <div
-            className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
-              viewMode === "manual"
-                ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-                : "bg-gray-400"
-            }`}
-            onClick={() => viewModeChange("manual")}
-          >
-            <button>Manual Irrigation</button>
-          </div>
+                {/* auto selector */}
+                <div
+                  className={`flex xl:w-1/3 py-2 xl:px-1 px-4 justify-center items-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
+                    viewMode === "auto"
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+                      : "bg-gray-400"
+                  }`}
+                  onClick={() => viewModeChange("auto")}
+                >
+                  <button>Auto Irrigation</button>
+                </div>
+                {/* manual selector */}
+                <div
+                  className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
+                    viewMode === "manual"
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+                      : "bg-gray-400"
+                  }`}
+                  onClick={() => viewModeChange("manual")}
+                >
+                  <button>Manual Irrigation</button>
+                </div>
               </div>
 
               {/* auto selection view */}
               {viewMode === "auto" && (
-          <div className="">
-          {/* FloatInput controlled by parent */}
-          <FloatInput user_id={userId} pi_id={selectedLocation?.piId}
-  key={viewMode} // Forces re-render when viewMode changes
-  minValue={minValue}
-  maxValue={maxValue}
-  onMinChange={handleMinChange}
-  onMaxChange={handleMaxChange}
-  onSensorChange={handleSensorSelection}  /* Passing the callback */
-/>
-{/* <p>Sensor ID: {selectedSensorData.sensor_id}</p> */}
-          {/* You can now use minValue & maxValue here */}
-          {/* {selectedSensorData && (
-        <div className="mt-4">
-          <h2 className="text-lg font-semibold">Selected Sensor:</h2>
-          <p>Sensor ID: {selectedSensorData.sensor_id}</p>
-          <p>Sensor Type: {selectedSensorData.sensor_type}</p>
-          <p>Sensor Unit: {selectedSensorData.sensor_unit}</p>
-        </div>
-      )} */}
-  {/* {minValue}/{maxValue} */}
-        </div>
+                <div className="">
+                  {/* FloatInput controlled by parent */}
+                  <FloatInput user_id={userId} piId={selectedLocation?.piId}
+                    key={viewMode} // Forces re-render when viewMode changes
+                    minValue={minValue}
+                    maxValue={maxValue}
+                    onMinChange={handleMinChange}
+                    onMaxChange={handleMaxChange}
+                    onSensorChange={handleSensorSelection}  /* Passing the callback */
+                  />
+                  
+                  {/* <p>Sensor ID: {selectedSensorData.sensor_id}</p> */}
+                            {/* You can now use minValue & maxValue here */}
+                            {/* {selectedSensorData && (
+                          <div className="mt-4">
+                            <h2 className="text-lg font-semibold">Selected Sensor:</h2>
+                            <p>Sensor ID: {selectedSensorData.sensor_id}</p>
+                            <p>Sensor Type: {selectedSensorData.sensor_type}</p>
+                            <p>Sensor Unit: {selectedSensorData.sensor_unit}</p>
+                          </div>
+                        )} */}
+                    {/* {minValue}/{maxValue} */}
+                </div>
               )}
 
               {/* manual selection view */}
               {viewMode === "manual"&&(
-          <div className="flex flex-col ">
-          {/* Buttons for selecting 'Now' or 'Other' */}
-          <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base mt-3">
-            {/* now view */}
-          <div
-            className={`flex xl:w-1/6 py-2 xl:px-1 px-4 justify-center items-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
-              dateMode === "now"
-                ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-                : "bg-gray-400"
-            }`}
-            onClick={() => setDateMode("now")}
-          >
-            <button>Now</button>
-          </div>
-          {/* schedule view */}
-          <div
-            className={`flex xl:w-1/6 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
-              dateMode === "schedule"
-                ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-                : "bg-gray-400"
-            }`}
-            onClick={() => setDateMode("schedule")}
-          >
-            <button>Schedule</button>
-          </div>
-        </div>
-
-          {/* Conditionally render the components */}
-          <div className="flex flex-col items-center mt-1">
-            {dateMode === "schedule" && (
-              <div className="w-full max-w-md">
-                <DateTimeInput onDateTimeChange={handleDateTimeChange} />
-                {/* <h1>Selected Date and Time: {JSON.stringify(selectedDateTime)}</h1> */}
+                <div className="flex flex-col ">
+                {/* Buttons for selecting 'Now' or 'Other' */}
+                <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base mt-3">
+                  {/* now view */}
+                <div
+                  className={`flex xl:w-1/6 py-2 xl:px-1 px-4 justify-center items-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
+                    dateMode === "now"
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+                      : "bg-gray-400"
+                  }`}
+                  onClick={() => setDateMode("now")}
+                >
+                  <button>Now</button>
+                </div>
+                {/* schedule view */}
+                <div
+                  className={`flex xl:w-1/6 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
+                    dateMode === "schedule"
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+                      : "bg-gray-400"
+                  }`}
+                  onClick={() => setDateMode("schedule")}
+                >
+                  <button>Schedule</button>
+                </div>
               </div>
-            )}
 
-            {/* Always show TimeSelector */}
-            <div className="w-full max-w-md">
-            <TimeSelector onTimeChange={handleTimeChange} />
-            {/* <div className="mt-4 text-xl">
-          Selected Time: {selectedTime < 1 ? `${(selectedTime * 60).toFixed(0)} min` : `${Math.floor(selectedTime)} hrs ${((selectedTime - Math.floor(selectedTime)) * 60).toFixed(0)} min`}
-        </div> */}
-        {/* {selectedTime} */}
-            </div>
-          </div>
-        </div>
+                {/* Conditionally render the components */}
+                <div className="flex flex-col items-center mt-1">
+                  {dateMode === "schedule" && (
+                    <div className="w-full max-w-md">
+                      <DateTimeInput onDateTimeChange={handleDateTimeChange} />
+                      {/* <h1>Selected Date and Time: {JSON.stringify(selectedDateTime)}</h1> */}
+                    </div>
+                  )}
+
+                  {/* Always show TimeSelector */}
+                  <div className="w-full max-w-md">
+                  <TimeSelector onTimeChange={handleTimeChange} />
+                  {/* <div className="mt-4 text-xl">
+                Selected Time: {selectedTime < 1 ? `${(selectedTime * 60).toFixed(0)} min` : `${Math.floor(selectedTime)} hrs ${((selectedTime - Math.floor(selectedTime)) * 60).toFixed(0)} min`}
+              </div> */}
+              {/* {selectedTime} */}
+                  </div>
+                </div>
+              </div>
 
               )}
               {/* Add buttons to control actuator mode */}
