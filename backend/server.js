@@ -952,10 +952,116 @@ app.get("/get-gateway-data", (req, res) => {
   });
 });
 
+// data logging apis
+app.get("/get-all-sensors", (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).json({ error: "user_id is required" });
+  }
+  if (!/^[a-zA-Z0-9_]+$/.test(user_id)) {
+    return res.status(400).json({ error: "Invalid user_id format" });
+  }
+
+
+  const tableName = `${user_id}_sensors_table`;
+
+  const query = `
+    SELECT sensor_id, sensor_type, pi_id AS sensor_name
+    FROM ??;
+  `;
+
+  db.query(query, [tableName], (err, results) => {
+    if (err) {
+      console.error("Database query error: ", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.get('/get-selected-sensor-data', async (req, res) => {
+  const { user_id, sensor_id } = req.query;
+
+  if (!user_id || !sensor_id) {
+    return res.status(400).json({ error: "user_id and sensor_id are required" });
+  }
+
+  const tableName = `${user_id}_sensors_data`; // dynamic table name
+  const query = `
+    SELECT sensor_data_id, sensor_id, esp_id, pi_id, timestamp, sensor_value, sensor_unit, sensor_status
+    FROM \`${tableName}\`
+    WHERE sensor_id = ?
+    ORDER BY timestamp DESC
+  `;
+
+  try {
+    const [rows] = await db.promise().query(query, [sensor_id]);
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching sensor data:", error);
+    res.status(500).json({ error: "Failed to fetch sensor data" });
+  }
+});
+
+app.post('/get-logs', async (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'userId is required' });
+  }
+
+  const logTable = `${userId}_log_table`;
+  const actuatorTable = `${userId}_actuator_data`;
+
+  try {
+    const logsQuery = `
+      SELECT
+        log_id AS id,
+        log_type AS type,
+        log_message AS message,
+        timestamp,
+        'log' AS source
+      FROM \`${logTable}\`
+    `;
+
+    const actuatorsQuery = `
+      SELECT
+        actuator_data_id AS id,
+        actuator_status AS status,
+        actuator_name,
+        sensor_id,
+        sensor_name,
+        timestamp,
+        'actuator' AS source
+      FROM \`${actuatorTable}\`
+    `;
+
+    const [logs] = await db.promise().query(logsQuery);
+    const [actuators] = await db.promise().query(actuatorsQuery);
+
+    const merged = [...logs, ...actuators].sort(
+      (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+    );
+
+    res.json({ success: true, data: merged });
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ success: false, error: 'Database error or user table not found.' });
+  }
+});
 
 
 
 
+
+
+
+
+
+
+// login api
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 

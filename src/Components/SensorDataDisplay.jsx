@@ -39,7 +39,7 @@ ChartJS.register(
 
 
 
-const SensorDataDisplay = ({ selectedLocation, userId }) => {
+const SensorDataDisplay = ({ selectedLocation, userId, selectedSensorId }) => {
   const [sensorData, setSensorData] = useState({});
   const [sseSensorData, setSseSensorData] = useState({});
   const [selectedSensorType, setSelectedSensorType] = useState("");
@@ -47,6 +47,8 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const [showLatest, setShowLatest] = useState(true); // Track whether user is at the latest data
   const [graphKey, setGraphKey] = useState(0); // Key for unmounting and re-rendering graph
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedSensor, setSelectedSensor] = useState(null);
+
 
 
   const sseSourceRef = useRef(null);
@@ -64,6 +66,12 @@ useEffect(() => {
   window.addEventListener("resize", handleResize);
   return () => window.removeEventListener("resize", handleResize);
 }, []);
+
+useEffect(() => {
+  console.log("Selected Pi ID:", selectedLocation);
+  console.log("Selected Sensor ID:", selectedSensorId);
+  console.log("User ID:", userId);
+}, [selectedLocation, selectedSensorId, userId]);
 
 
   const fetchSensorData = useCallback(
@@ -86,7 +94,42 @@ useEffect(() => {
     [userId]
   );
 
-  const handleSensorTypeSelect = (sensorType, sensorId) => {
+  useEffect(() => {
+  if (
+    selectedSensorId &&
+    sensorData &&
+    Object.keys(sensorData).length > 0
+  ) {
+    // Clear previously selected type (if it's different)
+    let alreadySelectedSensor = false;
+
+    for (const sensorType in sensorData) {
+      const sensorList = sensorData[sensorType];
+      const match = sensorList.find(sensor => sensor.sensor_id === selectedSensorId);
+      if (match) {
+        // If same sensor type already selected, skip re-selection
+        if (selectedSensorType !== sensorType || selectedSensor?.sensor_id !== selectedSensorId) {
+          handleSensorTypeSelect(sensorType, selectedSensorId);
+        }
+        alreadySelectedSensor = true;
+        break;
+      }
+    }
+
+    // If the sensorId doesn't match anything, clear selection
+    if (!alreadySelectedSensor && selectedSensorType) {
+      setSelectedSensorType(null);
+      setSelectedSensor(null);
+    }
+  }
+}, [selectedSensorId, sensorData]);
+
+
+
+  const handleSensorTypeSelect = (sensorType, sensorIdFromClick) => {
+
+    // Prefer selectedSensorId from props if available, fallback to clicked one
+  const sensorId = selectedSensorId || sensorIdFromClick;
     if (!sensorId) {
       console.error("Sensor ID is undefined");
       return;
@@ -284,43 +327,49 @@ useEffect(() => {
 
 
   return (
-    <div className="mt-6 xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] relative xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]">
+    <div
+  className={`mt-6 relative
+    ${selectedSensorId
+      ? "xl:h-[calc(100vh-30rem)] h-[calc(100vh-16rem)] xl:w-full w-[calc(100vw-8rem)]"
+      : "xl:h-[calc(100vh-42rem)] h-[calc(100vh-24rem)] xl:w-[calc(100vw-80rem)] w-[calc(100vw-6rem)]"
+    }`}
+>
       {loading ? (
         <div className="overflow-x-auto shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 xl:h-[calc(100vh-40rem)] h-[calc(100vh-24rem)] relative xl:w-full w-[calc(100vw-6rem)] text-center justify-center items-center flex bg-gray-200">Select a location from the map to see avaliable sensors.</div>
       ) : sensorTypes.length > 0 ? (
         <div>
-          <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base">
-            {sensorTypes.map((sensorType, index) => (
-              <button
-                key={sensorType}
-                onClick={() =>
-                  handleSensorTypeSelect(
-                    sensorType,
-                    sensorData[sensorType][0]?.sensor_id
-                  )
-                }
-                className={`flex xl:w-fit py-2 px-4 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl
-        ${
-          selectedSensorType === sensorType
-            ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-            : "bg-gray-400"
-        }
-        ${index === 0 ? "rounded-l-full" : ""}
-        ${index === sensorTypes.length - 1 ? "rounded-r-full" : ""}`}
-              >
-                {sensorType}
-              </button>
-            ))}
-          </div>
+          {!selectedSensorId && (
+            <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base">
+              {sensorTypes.map((sensorType, index) => (
+                <button
+                  key={sensorType}
+                  onClick={() =>
+                    handleSensorTypeSelect(
+                      sensorType,
+                      sensorData[sensorType][0]?.sensor_id
+                    )
+                  }
+                  className={`flex xl:w-fit py-2 px-4 xl:px-3 justify-center xl:hover:bg-gradient-to-t xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer shadow-2xl
+                    ${
+                      selectedSensorType === sensorType
+                        ? "bg-gradient-to-r from-blue-500 to-indigo-500"
+                        : "bg-gray-400"
+                    }
+                    ${index === 0 ? "rounded-l-full" : ""}
+                    ${index === sensorTypes.length - 1 ? "rounded-r-full" : ""}`}
+                >
+                  {sensorType}
+                </button>
+              ))}
+            </div>
+          )}
+
           {!selectedSensorType &&(
             <><div className=" mt-4 overflow-x-auto shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 xl:h-[calc(100vh-45rem)] h-fit relative xl:w-full w-[calc(100vw-6rem)] text-center justify-center items-center flex bg-gray-200">Select a sensor to see its graph.</div></>
           )}
           {selectedSensorType && (
             <>
-
-
-
-              <div className="mt-2 xl:h-[calc(100vh-42rem)] h-fit overflow-x-auto relative">
+              <div className="mt-2 xl:h-[calc(100vh-42rem)] h-fit overflow-x-auto relative p-4 shadow-lg rounded-3xl border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500">
                  {/* Graph with overlay buttons */}
                  <div className="absolute top-4 right-4 z-10 flex">
                  <button
@@ -329,10 +378,10 @@ useEffect(() => {
                   >
                     {/* Zoom In */}
                     <img
-          src="https://cdn-icons-png.flaticon.com/512/20/20183.png"
-          alt="Reset View"
-          className="xl:w-4 xl:h-4 w-4 h-4 opacity-70"
-        />
+                      src="https://cdn-icons-png.flaticon.com/512/20/20183.png"
+                      alt="Reset View"
+                      className="xl:w-4 xl:h-4 w-4 h-4 opacity-70"
+                    />
                   </button>
 
                   <button
@@ -341,10 +390,10 @@ useEffect(() => {
                   >
                     {/* Zoom Out */}
                     <img
-          src="https://cdn-icons-png.flaticon.com/512/43/43625.png"
-          alt="Reset View"
-          className="xl:w-4 xl:h-4 w-4 h-4 opacity-70"
-        />
+                      src="https://cdn-icons-png.flaticon.com/512/43/43625.png"
+                      alt="Reset View"
+                      className="xl:w-4 xl:h-4 w-4 h-4 opacity-70"
+                    />
                   </button>
 
                   <button
@@ -353,10 +402,10 @@ useEffect(() => {
                   >
                     {/* Reset View */}
                     <img
-          src="https://cdn-icons-png.flaticon.com/512/3031/3031710.png"
-          alt="Reset View"
-          className="xl:w-4 xl:h-4 w-4 h-4 opacity-70"
-        />
+                      src="https://cdn-icons-png.flaticon.com/512/3031/3031710.png"
+                      alt="Reset View"
+                      className="xl:w-4 xl:h-4 w-4 h-4 opacity-70"
+                    />
                   </button>
                 </div>
                 <Line
@@ -366,6 +415,8 @@ useEffect(() => {
                   className="h-[calc(100vh-32rem)]"
                   ref={chartRef} // Attach the ref to the chart
                 />
+
+
               </div>
               <h3 className="text-center font-semibold mt-1">
                 Sensor Graph for {selectedSensorType} (
