@@ -840,7 +840,7 @@ app.get("/get-all-sensors", (req, res) => {
   const tableName = `${user_id}_sensors_table`;
 
   const query = `
-    SELECT sensor_id, sensor_type, min_sensor_value, max_sensor_value, sensor_unit, pi_id, sensor_status, updated_at
+    SELECT sensor_id, sensor_type, min_sensor_value, max_sensor_value, esp_id, sensor_unit, pi_id, sensor_status, updated_at
     FROM ??;
   `;
 
@@ -953,33 +953,33 @@ app.get("/get-gateway-data", (req, res) => {
 });
 
 // data logging apis
-app.get("/get-all-sensors", (req, res) => {
-  const { user_id } = req.query;
+// app.get("/get-all-sensors", (req, res) => {
+//   const { user_id } = req.query;
 
-  if (!user_id) {
-    return res.status(400).json({ error: "user_id is required" });
-  }
-  if (!/^[a-zA-Z0-9_]+$/.test(user_id)) {
-    return res.status(400).json({ error: "Invalid user_id format" });
-  }
+//   if (!user_id) {
+//     return res.status(400).json({ error: "user_id is required" });
+//   }
+//   if (!/^[a-zA-Z0-9_]+$/.test(user_id)) {
+//     return res.status(400).json({ error: "Invalid user_id format" });
+//   }
 
 
-  const tableName = `${user_id}_sensors_table`;
+//   const tableName = `${user_id}_sensors_table`;
 
-  const query = `
-    SELECT sensor_id, sensor_type, pi_id AS sensor_name
-    FROM ??;
-  `;
+//   const query = `
+//     SELECT sensor_id, sensor_type, pi_id AS sensor_name
+//     FROM ??;
+//   `;
 
-  db.query(query, [tableName], (err, results) => {
-    if (err) {
-      console.error("Database query error: ", err);
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
+//   db.query(query, [tableName], (err, results) => {
+//     if (err) {
+//       console.error("Database query error: ", err);
+//       return res.status(500).json({ error: "Internal Server Error" });
+//     }
 
-    res.json(results);
-  });
-});
+//     res.json(results);
+//   });
+// });
 
 app.get('/get-selected-sensor-data', async (req, res) => {
   const { user_id, sensor_id } = req.query;
@@ -1179,8 +1179,6 @@ app.get('/get-live-alerts', (req, res) => {
   fetchAndSendIfChanged();
 });
 
-
-
 // deletion of alert
 app.delete('/delete-alert', (req, res) => {
   const { user_id, sensor_id } = req.query;
@@ -1205,6 +1203,169 @@ app.delete('/delete-alert', (req, res) => {
     }
   });
 });
+
+
+
+// system control apis
+// actuator summary API
+app.get('/get-actuator-summary', (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  const actuatorSummaryQuery = `
+    SELECT
+      a.pi_id,
+      a.esp_id,
+      a.actuator_id,
+      a.actuator_name,
+      e.esp_name
+    FROM \`${user_id}_actuator_table\` a
+    LEFT JOIN \`${user_id}_esp_table\` e ON a.esp_id = e.esp_id;
+  `;
+
+  db.query(actuatorSummaryQuery, (err, results) => {
+    if (err) {
+      console.error('Query failed:', err);
+      return res.status(500).json({ error: 'Query failed' });
+    }
+
+    return res.json({ actuators: results });
+  });
+});
+
+// esp summary API
+app.get('/get-esp-summary', (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  const espSummaryQuery = `
+    SELECT
+      esp_id,
+      pi_id,
+      esp_name,
+      esp_status
+    FROM \`${user_id}_esp_table\`;
+  `;
+
+  db.query(espSummaryQuery, (err, results) => {
+    if (err) {
+      console.error('Query failed:', err);
+      return res.status(500).json({ error: 'Query failed' });
+    }
+
+    return res.json({ espDevices: results });
+  });
+});
+
+app.post('/log-action', (req, res) => {
+  const { user_id, pi_id, esp_id, action_name } = req.body;
+
+  if (!user_id || !pi_id || !esp_id || !action_name) {
+    return res.status(400).json({ error: 'user_id, pi_id, esp_id, and action_name are required' });
+  }
+
+  const tableName = `${user_id}_action_table`;
+
+  const insertQuery = `
+    INSERT INTO \`${tableName}\` (pi_id, esp_id, action_name)
+    VALUES (?, ?, ?)
+  `;
+
+  db.query(insertQuery, [pi_id, esp_id, action_name], (err, result) => {
+    if (err) {
+      console.error('Query failed:', err);
+      return res.status(500).json({ error: 'Query failed' });
+    }
+
+    return res.json({ message: 'Action logged successfully', insertedId: result.insertId });
+  });
+});
+
+app.get('/get-live-actions', (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).send('User ID is required');
+  }
+
+  const actionTable = `${user_id}_action_table`;
+
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Add this line if frontend is on another port
+
+  if (res.flushHeaders) res.flushHeaders();
+
+  // console.log(`✅ SSE connection established for user_id: ${user_id}`);
+
+  let lastSentActions = [];
+
+  const isChanged = (oldData, newData) => {
+    return JSON.stringify(oldData) !== JSON.stringify(newData);
+  };
+
+  const fetchAndSendIfChanged = () => {
+    const query = `
+      SELECT action_id, action_name, action_status, timestamp
+      FROM \`${actionTable}\`
+      ORDER BY timestamp DESC
+      LIMIT 50
+    `;
+
+    db.query(query, (err, results) => {
+      if (err) {
+        // console.error('❌ Error querying DB:', err);
+        res.write(`event: error\ndata: ${JSON.stringify({ error: 'DB query error' })}\n\n`);
+        return;
+      }
+
+      if (results) {
+        const newActions = results.map(action => ({
+          action_id: action.action_id,
+          action_name: action.action_name,
+          action_status: action.action_status,
+          timestamp: action.timestamp
+        }));
+
+        if (isChanged(lastSentActions, newActions)) {
+          // console.log(`🔄 Data changed for user_id: ${user_id}, sending update.`);
+          res.write(`data: ${JSON.stringify(newActions)}\n\n`);
+          lastSentActions = JSON.parse(JSON.stringify(newActions)); // Deep clone
+        }
+      }
+    });
+  };
+
+  // Send updates every 5 seconds
+  const intervalId = setInterval(fetchAndSendIfChanged, 5000);
+
+  // Keep connection alive (ping every 15 seconds)
+  const keepAlive = setInterval(() => res.write(':\n\n'), 15000);
+
+  // Handle client disconnect
+  req.on('close', () => {
+    // console.log(`❌ SSE connection closed for user_id: ${user_id}`);
+    clearInterval(intervalId);
+    clearInterval(keepAlive);
+    res.end();
+  });
+
+  // Immediately send latest actions
+  fetchAndSendIfChanged();
+});
+
+
+
+
+
 
 
 
