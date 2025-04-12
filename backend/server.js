@@ -1363,6 +1363,102 @@ app.get('/get-live-actions', (req, res) => {
 });
 
 
+// ticket creation and managing endpoints
+// ticket predefined messages
+app.get('/get-ticket-messages', (req, res) => {
+  const { parent_id } = req.query;
+
+  // Build query based on whether parent_id is passed
+  const baseQuery = parent_id
+    ? 'SELECT message_id, parent_id, level, message_text, is_button FROM ticket_predefined_messages WHERE parent_id = ?'
+    : 'SELECT message_id, parent_id, level, message_text, is_button FROM ticket_predefined_messages WHERE level = 0';
+
+  const params = parent_id ? [parent_id] : [];
+
+  db.query(baseQuery, params, async (err, results) => {
+    if (err) {
+      console.error('Query failed:', err);
+      return res.status(500).json({ error: 'Query failed' });
+    }
+
+    // Function to check if a message has children
+    const checkNextLevelExists = (message_id) => {
+      return new Promise((resolve) => {
+        const subQuery = 'SELECT COUNT(*) AS count FROM ticket_predefined_messages WHERE parent_id = ?';
+        db.query(subQuery, [message_id], (subErr, subResult) => {
+          if (subErr) {
+            console.error('Subquery failed:', subErr);
+            return resolve(false);
+          }
+          resolve(subResult[0].count > 0);
+        });
+      });
+    };
+
+    // Enrich results with `next_level_exists`
+    const messagesWithFlags = await Promise.all(
+      results.map(async (msg) => {
+        const nextLevel = await checkNextLevelExists(msg.message_id);
+        return {
+          id: msg.message_id,
+          text: msg.message_text,
+          is_button: !!msg.is_button,
+          next_level_exists: nextLevel
+        };
+      })
+    );
+
+    return res.json({
+      parent_id: parent_id || null,
+      messages: messagesWithFlags
+    });
+  });
+});
+
+// ticket creation
+app.post('/create-ticket', (req, res) => {
+  const { user_id, ticket_issue, ticket_message } = req.body;
+
+  if (!user_id || !ticket_issue || !ticket_message) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+
+  const insertTicketQuery = `
+    INSERT INTO ticket_data (user_id, ticket_issue, ticket_message, ticket_status)
+    VALUES (?, ?, ?, 'created')
+  `;
+
+  db.query(insertTicketQuery, [user_id, ticket_issue, ticket_message], (err, result) => {
+    if (err) {
+      console.error('Ticket insert failed:', err);
+      return res.status(500).json({ error: 'Failed to create ticket.' });
+    }
+
+    const ticket_id = result.insertId;
+    const messageText = `Issue: ${ticket_issue}\nMessage: ${ticket_message}`;
+    const insertMessageQuery = `
+      INSERT INTO ?? (sender_role, message_text, ticket_id)
+      VALUES ('user', ?, ?)
+    `;
+
+    const tableName = `${user_id}_ticket_messages`;
+
+    db.query(insertMessageQuery, [tableName, messageText, ticket_id], (msgErr) => {
+      if (msgErr) {
+        console.error('Message insert failed:', msgErr);
+        return res.status(500).json({ error: 'Ticket created, but failed to log message.' });
+      }
+
+      return res.json({
+        message: 'Ticket created successfully.',
+        ticket_id,
+      });
+    });
+  });
+});
+
+
+
 
 
 
