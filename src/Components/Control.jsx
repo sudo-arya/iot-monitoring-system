@@ -114,7 +114,7 @@ const Control = () => {
     <div className="w-full h-full flex">
       <Sidebar />
 
-      <div className="absolute xl:w-[calc(100vw-6rem)] h-full my-20 ml-20 flex flex-col px-4">
+      <div className="absolute xl:w-[calc(100vw-6rem)] h-full my-20 ml-20 flex flex-col px-">
         {/* Toast Notification */}
         {toastMessage && (
           <div className={`fixed xl:right-6 xl:top-2 right-2 top-2 text-xl rounded-xl border p-3 px-6 z-50 ${toastColor}`}>
@@ -128,7 +128,7 @@ const Control = () => {
         ) : error ? (
           <div className="text-red-500 text-center">{error}</div>
         ) : (
-          <div className="flex flex-col md:flex-row md:space-x-4 p-3 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg">
+          <div className="flex flex-col md:flex-row md:space-x-4 p-3 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg w-[calc(100vw-6rem)]">
             {/* Sensor Selection */}
             <div className="md:w-1/3 p-4">
               <h2 className="text-xl font-bold mb-1 text-center">Select Sensor</h2>
