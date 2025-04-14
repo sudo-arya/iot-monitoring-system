@@ -260,7 +260,7 @@ const createTriangleMarker = () =>
 // zoom handle
   useEffect(() => {
     const updateZoom = () => {
-      setZoom(window.innerWidth < 768 ? 17 : defaultZoom); // Use 17 for small screens
+      setZoom(window.innerWidth < 768 ? 17 : defaultZoom); // Use 17 for small screens 
     };
 
     updateZoom(); // Set initial zoom

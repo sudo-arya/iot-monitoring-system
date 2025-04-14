@@ -1,6 +1,6 @@
 // src/components/SEO.js
 import React from "react";
-// import Sidebar from "./Sidebar";
+// import Sidebar from "./Sidebar"; 
 
 const PiGraph = () => {
   return (

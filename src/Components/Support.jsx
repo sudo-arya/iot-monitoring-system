@@ -5,22 +5,27 @@ import Sidebar from "./Sidebar";
 import { SendHorizonal, RefreshCw } from "lucide-react";
 
 const Support = () => {
+  // eslint-disable-next-line
   const location = useLocation();
   const userId = localStorage.getItem("userId");
+  // eslint-disable-next-line
   const [sensorData, setSensorData] = useState([]);
   const [toastMessage, setToastMessage] = useState("");
+  // eslint-disable-next-line
   const [toastColor, setToastColor] = useState("bg-green-200");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [chatFlow, setChatFlow] = useState([]); // Chat flow history
   const [isDataLoaded, setIsDataLoaded] = useState(false); // Flag to track data load
+  // eslint-disable-next-line
   const [selectedMessageId, setSelectedMessageId] = useState(null); // Track selected message
   const triggeredMessageIdsRef = React.useRef(new Set());
+  // eslint-disable-next-line
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [userComment, setUserComment] = useState("");
   const [viewMode, setViewMode] = useState("open");
   const [chatMode, setChatMode] = useState(null);
-  const [selectedMessages, setSelectedMessages] = useState(""); // string instead of array
+  const [selectedMessages, setSelectedMessages] = useState(""); // string instead of array 
   const [tickets, setTickets] = useState([]);
 
 
@@ -35,6 +40,7 @@ const Support = () => {
   // Load root messages initially
   useEffect(() => {
     fetchMessages(null);
+    // eslint-disable-next-line
   }, []);
 
   const fetchMessages = async (parentId) => {
@@ -114,6 +120,7 @@ const Support = () => {
           onAutoTrigger(msg);
         }
       }
+      // eslint-disable-next-line
     }, [msg]);
 
     return (

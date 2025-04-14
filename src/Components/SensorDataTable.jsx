@@ -84,7 +84,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
     };
 
     sseSourceRef.current = eventSource; // Save reference to the current SSE connection
-    setSelectedSensorType(sensorType); // Update the selected sensor type
+    setSelectedSensorType(sensorType); // Update the selected sensor type 
   };
 
   useEffect(() => {

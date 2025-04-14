@@ -6,7 +6,7 @@ const Home = () => {
   const navigate = useNavigate(); // Hook to navigate to a different route
 
   const handleClick = () => {
-    navigate("/signin"); // Redirect to the /signin route
+    navigate("/signin"); // Redirect to the /signin route 
   };
 
   return (

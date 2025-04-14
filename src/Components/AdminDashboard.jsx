@@ -34,7 +34,7 @@ const Dashboard = () => {
   return (
     <div className=" w-full min-h-screen flex bg-gray-100">
       <Sidebar />
-      <div className="my-10 absolute mx-20">
+      <div className="my-10 absolute mx-20"> 
         {toastMessage && (
           <div
             className={`toast-top ${toastColor} p-2 px-10 my-20 fixed text-xl rounded-xl xl:right-6 xl:top-2 top-0 right-2 text-green-700 border-green-300 border`}

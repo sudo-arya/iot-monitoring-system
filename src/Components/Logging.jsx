@@ -1,20 +1,25 @@
 // src/components/SEO.js
 import React, { useEffect, useState, useMemo } from "react";
 import { useLocation } from "react-router-dom";
+// eslint-disable-next-line
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import axios from "axios";
 import Sidebar from "./Sidebar";
 import SensorDataDisplay from "./SensorDataDisplay";
 
 const Logging = () => {
+  // eslint-disable-next-line
   const location = useLocation();
   const userId = localStorage.getItem("userId");
   const [sensorData, setSensorData] = useState([]);
   const [toastMessage, setToastMessage] = useState("");
+  // eslint-disable-next-line
   const [toastColor, setToastColor] = useState("bg-green-200");
   const [isLoading, setIsLoading] = useState(false);
+  // eslint-disable-next-line
   const [error, setError] = useState("");
   const [sensorList, setSensorList] = useState([]);
+  // eslint-disable-next-line
   const [sensorDataMap, setSensorDataMap] = useState({});
   const [selectedSensorType, setSelectedSensorType] = useState(null);
   const [selectedSensorId, setSelectedSensorId] = useState(null);
@@ -22,6 +27,7 @@ const Logging = () => {
   const [sortConfig, setSortConfig] = useState({ key: "timestamp", direction: "desc" });
   const [searchTermLog, setSearchTermLog] = useState("");
   const [sortConfigLog, setSortConfigLog] = useState({ key: "timestamp", direction: "desc" });
+  // eslint-disable-next-line
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [data, setData] = useState([]);
@@ -83,6 +89,7 @@ const Logging = () => {
     if (userId && selectedSensorId) {
       fetchSensorData();
     }
+    // eslint-disable-next-line
   }, [userId, selectedSensorId]);
 
   useEffect(() => {

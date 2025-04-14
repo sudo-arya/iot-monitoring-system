@@ -54,7 +54,7 @@ const SignIn = () => {
           Array.isArray(locations) && locations.length > 0 ? locations : [];
         localStorage.setItem("locations", JSON.stringify(userLocations));
 
-        // Redirect based on role
+        // Redirect based on role 
         if (user.role === "admin") {
           setToastMessage("Redirecting to Admin Dashboard");
           setToastColor("bg-green-500");

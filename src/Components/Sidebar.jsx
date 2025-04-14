@@ -17,7 +17,7 @@ import { Link, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false); // Sidebar expansion state
-  const [isSmallScreen, setIsSmallScreen] = useState(false); // Small screen detection
+  const [isSmallScreen, setIsSmallScreen] = useState(false); // Small screen detection 
   const location = useLocation();
 
   // Detect if the screen size is small

@@ -1,5 +1,5 @@
 // src/components/SEO.js
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import Sidebar from "./Sidebar";
@@ -15,14 +15,18 @@ import {
 import { Trash2 } from "lucide-react"; // using Lucide icons
 
 const Alert = () => {
+  // eslint-disable-next-line
   const location = useLocation();
   const userId = localStorage.getItem("userId");
+  // eslint-disable-next-line
   const [sensorData, setSensorData] = useState([]);
   const [toastMessage, setToastMessage] = useState("");
   const [toastColor, setToastColor] = useState("bg-green-200");
   const [isLoading, setIsLoading] = useState(false);
+  // eslint-disable-next-line
   const [error, setError] = useState("");
   const [sensorList, setSensorList] = useState([]);
+  // eslint-disable-next-line
   const [sensorDataMap, setSensorDataMap] = useState({});
   const [selectedSensorType, setSelectedSensorType] = useState(null);
   const [selectedSensorId, setSelectedSensorId] = useState(null);

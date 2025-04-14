@@ -144,12 +144,15 @@
 // export default DateTimeInput;
 
 import React, { useState, useEffect } from "react";
+// eslint-disable-next-line
 import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Box, Typography, Button } from "@mui/material";
+// eslint-disable-next-line
 import { TimeClock } from "@mui/x-date-pickers/TimeClock";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+// eslint-disable-next-line
 import { format } from 'date-fns';
 import dayjs from 'dayjs';
 
@@ -161,13 +164,16 @@ const DateTimeInput = ({ onDateTimeChange }) => {
   const [selectedDateTime, setSelectedDateTime] = useState(dayjs(currentDate));
   const [selectedHours, setSelectedHours] = useState(currentHours);
   const [selectedMinutes, setSelectedMinutes] = useState(currentMinutes);
+  // eslint-disable-next-line
   const [openHoursDialog, setOpenHoursDialog] = useState(false);
+  // eslint-disable-next-line
   const [openMinutesDialog, setOpenMinutesDialog] = useState(false);
 
   useEffect(() => {
     setSelectedDateTime(dayjs(currentDate));
     setSelectedHours(currentHours);
     setSelectedMinutes(currentMinutes);
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -183,7 +189,7 @@ const DateTimeInput = ({ onDateTimeChange }) => {
     setSelectedHours(newDateTime.hour());
     setSelectedMinutes(newDateTime.minute());
   };
-
+// eslint-disable-next-line
   const handleHoursChange = (newTime) => {
     setSelectedHours(newTime);
     setOpenHoursDialog(false);
@@ -193,16 +199,16 @@ const DateTimeInput = ({ onDateTimeChange }) => {
       setOpenMinutesDialog(true);
     }, 500);
   };
-
+// eslint-disable-next-line
   const handleMinutesChange = (newTime) => {
     setSelectedMinutes(newTime);
     setOpenMinutesDialog(false);
   };
-
+// eslint-disable-next-line
   const handleHoursDialogOpen = () => {
     setOpenHoursDialog(true);
   };
-
+// eslint-disable-next-line
   const handleMinutesDialogClose = () => {
     setOpenMinutesDialog(false);
   };

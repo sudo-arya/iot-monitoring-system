@@ -1,5 +1,5 @@
 import React from "react";
-// import "./WindDirection.css";
+// import "./WindDirection.css"; 
 
 const WindDirection = ({ degree }) => {
   return (

@@ -1,6 +1,6 @@
 import React from "react";
 import Sidebar from "./Sidebar";
-import { FaLightbulb } from "react-icons/fa"; // Importing FontAwesome icon
+import { FaLightbulb } from "react-icons/fa"; // Importing FontAwesome icon 
 
 const Pest = () => {
   return (

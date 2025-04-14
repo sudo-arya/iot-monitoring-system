@@ -5,6 +5,7 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 
 const Control = () => {
+  // eslint-disable-next-line
   const location = useLocation();
   const userId = localStorage.getItem("userId");
 

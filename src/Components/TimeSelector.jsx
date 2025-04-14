@@ -181,6 +181,7 @@ const TimeSelector = ({ onTimeChange }) => {
 // Call the onTimeChange function whenever the slider value changes
 useEffect(() => {
   onTimeChange(transformedTime);
+  // eslint-disable-next-line
 }, [sliderValue, onTimeChange]);
 
   const resetSlider = () => {

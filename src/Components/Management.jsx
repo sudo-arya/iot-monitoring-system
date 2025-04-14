@@ -1,5 +1,5 @@
 // src/components/SEO.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { MapComponent } from "./SensorMap";
@@ -14,11 +14,13 @@ const Management = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastColor, setToastColor] = useState("");
   const [isLoading, setIsLoading] = useState(false); // Loading state
+  // eslint-disable-next-line
   const [error, setError] = useState(""); // For error state handling
   const locations = JSON.parse(localStorage.getItem("locations")) || [];
   const [selectedLocation, setSelectedLocation] = useState(null); // State to store selected marker data
   const [selectedEsp, setSelectedEsp] = useState(null);
   const [viewMode, setViewMode] = useState(null);
+  // eslint-disable-next-line
   const [espData, setEspData] = useState([]);
   const [actuatorData, setActuatorData] = useState([]);
   const [sensorData, setSensorData] = useState([]);
@@ -44,6 +46,7 @@ const Management = () => {
         }
       }, [location.state]);
 
+  // eslint-disable-next-line
   const showToast = (message,color) => {
     setToastMessage(message);
     setToastColor(color);

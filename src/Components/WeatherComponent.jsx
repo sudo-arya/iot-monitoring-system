@@ -17,7 +17,7 @@ const WeatherComponent = ({ locations }) => {
       if (latitude && longitude) {
         setFirstLat(latitude);
         setFirstLong(longitude);
-        
+
       } else {
         console.error(
           "Latitude or longitude is missing in the first location."
@@ -677,7 +677,7 @@ const WeatherComponent = ({ locations }) => {
 
   return (
     <div className="xl:w-fit w-[calc(100vw-6rem)] bg-white px-6 xl:px-14 py-4 border-2 border-r-indigo-500 border-b-indigo-500 border-t-blue-500 border-l-blue-500 rounded-3xl shadow-lg  text-gray-700">
-      {/* <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-green-500 to-emerald-500 -z-10"></div> */}
+      {/* <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-green-500 to-emerald-500 -z-10"></div> */} 
       <div className="current-weather">
         <div className=" inline-flex">
           <p className=" underline text-4xl font-bold">Current Weather</p>

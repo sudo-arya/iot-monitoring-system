@@ -7,7 +7,7 @@ const FloatInput = ({ user_id, piId, minValue, maxValue, onMinChange, onMaxChang
   const [selectedSensor, setSelectedSensor] = useState(null);
   const [localMinValue, setLocalMinValue] = useState(minValue);
   const [localMaxValue, setLocalMaxValue] = useState(maxValue);
-
+// eslint-disable-next-line
   let pi_id = piId || selectedLocation?.piId;
 
   // Fetch sensors from the backend
@@ -45,6 +45,7 @@ const FloatInput = ({ user_id, piId, minValue, maxValue, onMinChange, onMaxChang
         onMaxChange(matchedSensor.max_sensor_value);
       }
     }
+    // eslint-disable-next-line
   }, [sensors, selectedSensorType]);
 
 
@@ -63,6 +64,7 @@ const FloatInput = ({ user_id, piId, minValue, maxValue, onMinChange, onMaxChang
       onMinChange(sensor.min_sensor_value);
       onMaxChange(sensor.max_sensor_value);
     }
+    // eslint-disable-next-line
   }, [sensors, onSensorChange, onMinChange, onMaxChange]);
 
   const handleMinChange = (event) => {

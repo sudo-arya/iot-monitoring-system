@@ -6,7 +6,7 @@ export const LocationContext = createContext();
 export const LocationProvider = ({ children }) => {
   const [locations, setLocations] = useState([]);
 
-  // Load locations from localStorage on initial load
+  // Load locations from localStorage on initial load 
   useEffect(() => {
     const storedLocations = localStorage.getItem("locations");
     if (storedLocations) {

@@ -190,6 +190,7 @@ const Irrigation = () => {
     setViewMode(selectedMode); // Set the selected location in the parent
   };
 
+  // eslint-disable-next-line
   const viewModeChang = (selectedMode) => {
     setViewMode(selectedMode); // Set the selected location in the parent
   };
@@ -298,6 +299,7 @@ else if (viewMode === "manual") {
       });
 
       if (response.ok) {
+        // eslint-disable-next-line
         const result = await response.json();
         showToast(`Actuator ${mode === "active" ? "activated" : "deactivated"} successfully.`,`${mode === "inactive" ? "bg-red-100 text-red-700 border-red-300" : "bg-green-100"}`);
         //Refetch the actuators list after mode change
@@ -581,7 +583,7 @@ else if (viewMode === "manual") {
                     onMaxChange={handleMaxChange}
                     onSensorChange={handleSensorSelection}  /* Passing the callback */
                   />
-                  
+
                   {/* <p>Sensor ID: {selectedSensorData.sensor_id}</p> */}
                             {/* You can now use minValue & maxValue here */}
                             {/* {selectedSensorData && (

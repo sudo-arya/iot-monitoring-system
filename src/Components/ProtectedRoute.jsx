@@ -11,7 +11,7 @@ const ProtectedRoute = ({ role, children }) => {
     return <Navigate to="/signin" replace />;
   }
 
-  // If a role is specified and userRole doesn't match, redirect to signin
+  // If a role is specified and userRole doesn't match, redirect to signin 
   if (role && userRole?.toLowerCase() !== role.toLowerCase()) {
     console.warn(`Role mismatch: Expected ${role}, got ${userRole}`);
     return <Navigate to="/signin" replace />;

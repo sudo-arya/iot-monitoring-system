@@ -4,7 +4,7 @@ import { FaLightbulb } from "react-icons/fa"; // Importing FontAwesome icon
 
 const Analysis = () => {
   return (
-    <div className="w-full min-h-screen flex bg-gray-200">
+    <div className="w-full min-h-screen flex bg-gray-200"> 
       <Sidebar />
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">

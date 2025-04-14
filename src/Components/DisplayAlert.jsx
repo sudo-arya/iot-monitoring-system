@@ -31,7 +31,7 @@ const DisplayAlert = ({ userId }) => {
     };
   }, [userId]);
 
-  // Function to format timestamp to "8:40 AM 24 Nov"
+  // Function to format timestamp to "8:40 AM 24 Nov" 
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
     return date.toLocaleString('en-US', {

@@ -122,6 +122,7 @@ useEffect(() => {
       setSelectedSensor(null);
     }
   }
+  // eslint-disable-next-line
 }, [selectedSensorId, sensorData]);
 
 
@@ -295,6 +296,7 @@ useEffect(() => {
         },
       },
     };
+    // eslint-disable-next-line
   }, [selectedSensorType, sseSensorData, sensorData, showLatest, isMobile]);
 
 
@@ -314,7 +316,7 @@ useEffect(() => {
   };
 
 
-
+// eslint-disable-next-line
   const latestDataPoint =
     sseSensorData[selectedSensorType]?.[0] ||
     sensorData[selectedSensorType]?.[

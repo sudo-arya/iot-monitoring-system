@@ -41,7 +41,7 @@ const LatestSensorData = ({ userId, piId, piName }) => {
     // Store event source in the ref for cleanup on unmount
     sseSourceRef.current = eventSource;
 
-    // Cleanup the EventSource when the component unmounts
+    // Cleanup the EventSource when the component unmounts 
     return () => {
       sseSourceRef.current?.close();
     };

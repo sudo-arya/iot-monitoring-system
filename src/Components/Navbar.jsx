@@ -11,7 +11,7 @@ const Navbar = () => {
   // Check if the user is signed in
   const isSignedIn = !!localStorage.getItem("token");
   // const isUser = !!localStorage.getItem("userRole");
-  
+
   const handleRedirect = () => {
     const userRole = localStorage.getItem("userRole"); // Retrieve user role
     const token = localStorage.getItem("token"); // Retrieve JWT token
@@ -39,7 +39,7 @@ const Navbar = () => {
     localStorage.removeItem("locations");
     localStorage.removeItem("userId");
 
-    // Redirect to Sign-in page with a toast message
+    // Redirect to Sign-in page with a toast message 
     navigate("/", {
       state: {
         toastMessage: "You have successfully signed out.",

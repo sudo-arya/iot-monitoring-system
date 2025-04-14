@@ -158,7 +158,7 @@ const MapComponent = ({ locations, setSelectedLocation }) => {
         zoom={defaultZoom}
         style={{ height: "100%", width: "100%" }}
         className="w-full h-full rounded-[1.4rem] scroll-smooth"
-        onClick={handleMapClick} // Handle map clicks
+        onClick={handleMapClick} // Handle map clicks 
       >
         <TileLayer
           // url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" // default

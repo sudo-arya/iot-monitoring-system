@@ -4,7 +4,7 @@ import axios from "axios";
 const WeatherForecastComponent = ({ locations }) => {
   const [forecastData, setForecastData] = useState(null);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState("hourly"); // "hourly" or "weekly"
+  const [viewMode, setViewMode] = useState("hourly"); // "hourly" or "weekly" 
   const [firstLat, setFirstLat] = useState(null);
   const [firstLong, setFirstLong] = useState(null);
  useEffect(() => {

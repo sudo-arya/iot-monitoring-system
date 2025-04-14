@@ -186,7 +186,7 @@ const WeatherComponentGraph = () => {
     },
   };
 
-  // Dynamically change the data based on selected metric or view mode
+  // Dynamically change the data based on selected metric or view mode 
   const graphData =
     viewMode === "hourly"
       ? {
