@@ -123,7 +123,7 @@ const Alert = () => {
       return () => {
         eventSource.close();
       };
-    }, [userId]);
+    }, [userId,BASE_URL]);
 
 
 
