@@ -34,7 +34,7 @@ const Alert = () => {
   const [minValue, setMinValue] = useState(0.0);
   const [maxValue, setMaxValue] = useState(100.0);
   const [alerts, setAlerts] = useState([]);
-  const BASE_URL = process.env.REACT_APP_API_URL;
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   useEffect(() => {
       if (toastMessage) {
@@ -98,7 +98,7 @@ const Alert = () => {
     useEffect(() => {
       if (!userId) return;
 
-      const eventSource = new EventSource(`http://localhost:5000/get-live-alerts?user_id=${userId}`);
+      const eventSource = new EventSource(`${BASE_URL}/get-live-alerts?user_id=${userId}`);
 
       eventSource.onmessage = (event) => {
         try {

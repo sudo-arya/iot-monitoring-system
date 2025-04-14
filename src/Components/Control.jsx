@@ -296,7 +296,7 @@ const Control = () => {
       const action_name = `Restart ${device_name}`;
 
       try {
-        const response = await fetch('/log-action', {
+        const response = await fetch(`${BASE_URL}/log-action`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

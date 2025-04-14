@@ -141,7 +141,7 @@ useEffect(() => {
     }
 
     const eventSource = new EventSource(
-      `http://localhost:3000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`,
+      `${BASE_URL}/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`,
       // `http://192.168.137.1:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
     );
 
