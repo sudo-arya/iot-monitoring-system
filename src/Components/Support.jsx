@@ -25,8 +25,9 @@ const Support = () => {
   const [userComment, setUserComment] = useState("");
   const [viewMode, setViewMode] = useState("open");
   const [chatMode, setChatMode] = useState(null);
-  const [selectedMessages, setSelectedMessages] = useState(""); // string instead of array 
+  const [selectedMessages, setSelectedMessages] = useState(""); // string instead of array
   const [tickets, setTickets] = useState([]);
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 
 
@@ -46,7 +47,7 @@ const Support = () => {
   const fetchMessages = async (parentId) => {
     setIsLoading(true);
     try {
-      const response = await axios.get("http://localhost:3000/get-ticket-messages", {
+      const response = await axios.get(`${BASE_URL}/get-ticket-messages`, {
         params: parentId ? { parent_id: parentId } : {},
       });
 
@@ -187,7 +188,7 @@ const Support = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:3000/create-ticket', {
+      const response = await fetch(`${BASE_URL}/create-ticket`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -216,7 +217,7 @@ const Support = () => {
       return;
     }
 
-    const eventSource = new EventSource(`http://localhost:5000/get-live-tickets?user_id=${userId}`);
+    const eventSource = new EventSource(`${BASE_URL}/get-live-tickets?user_id=${userId}`);
 
     // Listen for incoming events
     eventSource.onmessage = (event) => {
@@ -238,7 +239,7 @@ const Support = () => {
     return () => {
       eventSource.close();
     };
-  }, [userId]);
+  }, [userId,BASE_URL]);
 
 
 

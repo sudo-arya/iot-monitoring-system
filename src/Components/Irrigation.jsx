@@ -18,8 +18,9 @@ const Irrigation = () => {
     const [actuators, setActuators] = useState([]);
     const [pumps, setPumps] = useState([]);
     const [actuatorsList, setActuatorsList] = useState([]);const [selectedActuator, setSelectedActuator] = useState(null); // State to store selected actuator
-  const [viewMode, setViewMode] = useState("auto"); // "hourly" or "weekly"
-  const [dateMode, setDateMode] = useState("now"); // 'now' or 'other'
+    const [viewMode, setViewMode] = useState("auto"); // "hourly" or "weekly"
+    const [dateMode, setDateMode] = useState("now"); // 'now' or 'other'
+    const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   const sseSourceRef = useRef(null);  // Ref to hold the SSE connection
   // eslint-disable-next-line
@@ -95,7 +96,7 @@ const Irrigation = () => {
 
   useEffect(() => {
     const eventSource = new EventSource(
-      `http://localhost:5000/current-irrigation-status?user_id=${userId}`
+      `${BASE_URL}/current-irrigation-status?user_id=${userId}`
     );
 
     // Event handler for receiving SSE data
@@ -128,14 +129,14 @@ const Irrigation = () => {
     return () => {
       sseSourceRef.current?.close();
     };
-  }, [userId]); // Dependency array to trigger effect when userId changes
+  }, [userId,BASE_URL]); // Dependency array to trigger effect when userId changes
 
 
   useEffect(() => {
     const fetchActuatorsList = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/get-actuators?user_id=${userId}&pi_id=${selectedLocation?.piId || ''}`
+          `${BASE_URL}/get-actuators?user_id=${userId}&pi_id=${selectedLocation?.piId || ''}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -155,7 +156,7 @@ const Irrigation = () => {
       fetchActuatorsList();
       setSelectedActuator(null);
     }
-  }, [userId, selectedLocation]);
+  }, [userId, selectedLocation,BASE_URL]);
 
   useEffect(() => {
     if (actuatorsList.length === 1) {
@@ -170,7 +171,7 @@ const Irrigation = () => {
   const fetchActuatorsList = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/get-actuators?user_id=${userId}&pi_id=${selectedLocation?.piId || ''}`
+        `${BASE_URL}/get-actuators?user_id=${userId}&pi_id=${selectedLocation?.piId || ''}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -279,7 +280,7 @@ else if (viewMode === "manual") {
 }
 
     try {
-      const response = await fetch("http://localhost:3000/actuator-mode", {
+      const response = await fetch(`${BASE_URL}/actuator-mode`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -316,7 +317,7 @@ else if (viewMode === "manual") {
 
   useEffect(() => {
     const eventSource = new EventSource(
-      `http://localhost:5000/current-actuator-data?user_id=${userId}`
+      `${BASE_URL}/current-actuator-data?user_id=${userId}`
     );
 
     eventSource.onmessage = (event) => {
@@ -346,7 +347,7 @@ else if (viewMode === "manual") {
     return () => {
       sseSourceRef.current?.close();
     };
-  }, [userId]);
+  }, [userId,BASE_URL]);
 
   // Callback function to handle the selected sensor data
   const handleSensorSelection = (sensor) => {

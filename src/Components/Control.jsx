@@ -8,7 +8,7 @@ const Control = () => {
   // eslint-disable-next-line
   const location = useLocation();
   const userId = localStorage.getItem("userId");
-
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [sensorList, setSensorList] = useState([]);
   const [actuators, setActuators] = useState([]);
   const [espDevices, setEspDevices] = useState([]);
@@ -40,9 +40,9 @@ const Control = () => {
         setIsLoading(true);
 
         const [actuatorRes, sensorRes, espRes] = await Promise.all([
-          axios.get('http://localhost:3000/get-actuator-summary', { params: { user_id: userId } }),
-          axios.get('http://localhost:3000/get-all-sensors', { params: { user_id: userId } }),
-          axios.get('http://localhost:3000/get-esp-summary', { params: { user_id: userId } }),
+          axios.get(`${BASE_URL}/get-actuator-summary`, { params: { user_id: userId } }),
+          axios.get(`${BASE_URL}/get-all-sensors`, { params: { user_id: userId } }),
+          axios.get(`${BASE_URL}/get-esp-summary`, { params: { user_id: userId } }),
         ]);
 
         setActuators(actuatorRes.data.actuators || []);
@@ -57,7 +57,7 @@ const Control = () => {
     };
 
     fetchData();
-  }, [userId]);
+  }, [userId,BASE_URL]);
 
   // Selection handlers
   const handleSensorTypeSelect = (sensorName, sensorId) => {
@@ -90,7 +90,7 @@ const Control = () => {
   useEffect(() => {
     if (!userId) return;
 
-    const eventSource = new EventSource(`http://localhost:3000/get-live-actions?user_id=${userId}`);
+    const eventSource = new EventSource(`${BASE_URL}/get-live-actions?user_id=${userId}`);
 
     eventSource.onmessage = (event) => {
       try {
@@ -109,7 +109,7 @@ const Control = () => {
     return () => {
       eventSource.close();
     };
-  }, [userId]);
+  }, [userId,BASE_URL]);
 
   return (
     <div className="w-full h-full flex">

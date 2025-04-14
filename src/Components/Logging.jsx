@@ -31,6 +31,7 @@ const Logging = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [data, setData] = useState([]);
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   const handleSensorTypeSelect = (sensorName, sensorId) => {
     setSelectedSensorType(sensorName);
@@ -51,7 +52,7 @@ const Logging = () => {
 
     const fetchSensors = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/get-all-sensors?user_id=${userId}`);
+        const response = await axios.get(`${BASE_URL}/get-all-sensors?user_id=${userId}`);
         const sensors = Array.isArray(response.data) ? response.data : [];
         setSensorList(sensors);
 
@@ -68,12 +69,12 @@ const Logging = () => {
     };
 
     fetchSensors();
-  }, [userId]);
+  }, [userId,BASE_URL]);
 
   const fetchSensorData = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get("http://localhost:3000/get-selected-sensor-data", {
+      const response = await axios.get(`${BASE_URL}/get-selected-sensor-data`, {
         params: { user_id: userId, sensor_id: selectedSensorId },
       });
       setSensorData(response.data);
@@ -136,7 +137,7 @@ const Logging = () => {
       const fetchLogsAndActuators = async () => {
         try {
           setIsLoading(true);
-          const response = await axios.post("http://localhost:3000/get-logs", {
+          const response = await axios.post(`${BASE_URL}/get-logs`, {
             userId,
           });
           setData(response.data.data);
@@ -149,7 +150,7 @@ const Logging = () => {
       };
 
       if (userId) fetchLogsAndActuators();
-    }, [userId]);
+    }, [userId,BASE_URL]);
 
     const handleSortLog = (key) => {
       setSortConfigLog((prev) => ({

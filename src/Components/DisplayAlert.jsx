@@ -3,6 +3,7 @@ import { FaCheckCircle, FaExclamationCircle, FaTimesCircle } from 'react-icons/f
 
 const DisplayAlert = ({ userId }) => {
   const [alerts, setAlerts] = useState([]);
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   useEffect(() => {
     if (!userId) return;
@@ -10,7 +11,7 @@ const DisplayAlert = ({ userId }) => {
     // Clear previous alerts when connecting to a new SSE connection
     setAlerts([]);
 
-    const eventSource = new EventSource(`http://localhost:5000/get-alerts-for-user?user_id=${userId}`);
+    const eventSource = new EventSource(`${BASE_URL}/get-alerts-for-user?user_id=${userId}`);
 
     eventSource.onmessage = (event) => {
       const alertData = JSON.parse(event.data);
@@ -29,9 +30,9 @@ const DisplayAlert = ({ userId }) => {
     return () => {
       eventSource.close();
     };
-  }, [userId]);
+  }, [userId,BASE_URL]);
 
-  // Function to format timestamp to "8:40 AM 24 Nov" 
+  // Function to format timestamp to "8:40 AM 24 Nov"
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
     return date.toLocaleString('en-US', {

@@ -20,7 +20,7 @@ const MapComponent = ({ locations, setSelectedLocation, setSelectedEsp }) => {
   const defaultCenter = [20.5937, 78.9629]; // Center on India (default)
   const defaultZoom = 18;
   const [zoom, setZoom] = useState(defaultZoom);
-
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const [popupPosition, setPopupPosition] = useState(null); // Track popup position
 
   const getCenter = (locations) => {
@@ -164,7 +164,7 @@ const MapComponent = ({ locations, setSelectedLocation, setSelectedEsp }) => {
       }
 
       try {
-        const response = await fetch("http://localhost:3000/esp-data", {
+        const response = await fetch(`${BASE_URL}/esp-data`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ user_id: String(userId) }), // Convert to string
@@ -186,7 +186,7 @@ const MapComponent = ({ locations, setSelectedLocation, setSelectedEsp }) => {
     };
 
     fetchESPData();
-  }, [userId]); // Runs when userId changes
+  }, [userId,BASE_URL]); // Runs when userId changes
 
 
 
@@ -260,7 +260,7 @@ const createTriangleMarker = () =>
 // zoom handle
   useEffect(() => {
     const updateZoom = () => {
-      setZoom(window.innerWidth < 768 ? 17 : defaultZoom); // Use 17 for small screens 
+      setZoom(window.innerWidth < 768 ? 17 : defaultZoom); // Use 17 for small screens
     };
 
     updateZoom(); // Set initial zoom

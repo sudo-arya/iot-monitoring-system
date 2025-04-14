@@ -34,6 +34,7 @@ const Alert = () => {
   const [minValue, setMinValue] = useState(0.0);
   const [maxValue, setMaxValue] = useState(100.0);
   const [alerts, setAlerts] = useState([]);
+  const BASE_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
       if (toastMessage) {
@@ -47,7 +48,7 @@ const Alert = () => {
 
       const fetchSensors = async () => {
         try {
-          const response = await axios.get(`http://localhost:3000/get-all-sensors?user_id=${userId}`);
+          const response = await axios.get(`${BASE_URL}/get-all-sensors?user_id=${userId}`);
           const sensors = Array.isArray(response.data) ? response.data : [];
           setSensorList(sensors);
 
@@ -64,7 +65,7 @@ const Alert = () => {
       };
 
       fetchSensors();
-    }, [userId]);
+    }, [userId,BASE_URL]);
 
 
 
@@ -161,7 +162,7 @@ const Alert = () => {
 
       try {
         const res = await fetch(
-          `http://localhost:3000/delete-alert?user_id=${userId}&sensor_id=${sensorId}`,
+          `${BASE_URL}/delete-alert?user_id=${userId}&sensor_id=${sensorId}`,
           {
             method: 'DELETE',
           }
@@ -367,7 +368,7 @@ const Alert = () => {
 
                         try {
                           setIsLoading(true);
-                          const response = await axios.post("http://localhost:3000/create-alert", {
+                          const response = await axios.post(`${BASE_URL}/create-alert`, {
                             user_id: userId,
                             sensor_id: selectedLocation.sensorId,
                             min_actuator_value: minValue,

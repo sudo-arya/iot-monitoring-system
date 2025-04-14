@@ -14,6 +14,7 @@ const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [toastColor, setToastColor] = useState(""); // Add this line
   const [toastMessage, setToastMessage] = useState("");
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   useEffect(() => {
     let timer;
@@ -36,7 +37,7 @@ const SignIn = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("/login", {
+      const response = await axios.post(`${BASE_URL}/login`, {
         email,
         password,
       });
@@ -54,7 +55,7 @@ const SignIn = () => {
           Array.isArray(locations) && locations.length > 0 ? locations : [];
         localStorage.setItem("locations", JSON.stringify(userLocations));
 
-        // Redirect based on role 
+        // Redirect based on role
         if (user.role === "admin") {
           setToastMessage("Redirecting to Admin Dashboard");
           setToastColor("bg-green-500");

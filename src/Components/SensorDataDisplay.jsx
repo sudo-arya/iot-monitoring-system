@@ -48,9 +48,7 @@ const SensorDataDisplay = ({ selectedLocation, userId, selectedSensorId }) => {
   const [graphKey, setGraphKey] = useState(0); // Key for unmounting and re-rendering graph
   const [isMobile, setIsMobile] = useState(false);
   const [selectedSensor, setSelectedSensor] = useState(null);
-
-
-
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const sseSourceRef = useRef(null);
   const chartRef = useRef(null); // Reference for the Chart.js instance
 
@@ -77,7 +75,7 @@ useEffect(() => {
   const fetchSensorData = useCallback(
     (piId) => {
       setLoading(true);
-      fetch(`/get-sensor-data?user_id=${userId}&pi_id=${piId}`)
+      fetch(`${BASE_URL}/get-sensor-data?user_id=${userId}&pi_id=${piId}`)
         .then((response) => response.json())
         .then((data) => {
           const formattedData = data.reduce((acc, sensor) => {
@@ -91,7 +89,7 @@ useEffect(() => {
         .catch((error) => console.error("Error fetching sensor data:", error))
         .finally(() => setLoading(false));
     },
-    [userId]
+    [userId,BASE_URL]
   );
 
   useEffect(() => {
@@ -143,7 +141,7 @@ useEffect(() => {
     }
 
     const eventSource = new EventSource(
-      `http://localhost:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`,
+      `http://localhost:3000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`,
       // `http://192.168.137.1:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
     );
 

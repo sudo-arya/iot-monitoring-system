@@ -27,6 +27,7 @@ const Management = () => {
   const [espDevices, setEspDevices] = useState([]);
   const [piDevices, setPiDevices] = useState([]);
   const [gatewayData, setGatewayData] = useState([]);
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 
   useEffect(() => {
@@ -82,7 +83,7 @@ const Management = () => {
       setIsLoading(true); // Set loading state before fetching
 
       axios
-        .get(`http://localhost:3000/get-all-esp?user_id=${userId}`)
+        .get(`${BASE_URL}/get-all-esp?user_id=${userId}`)
         .then((response) => {
           setEspDevices(response.data);
           // console.log(response.data);
@@ -95,7 +96,7 @@ const Management = () => {
           setIsLoading(false); // Ensure loading state resets
         });
 
-    }, [userId]);
+    }, [userId,BASE_URL]);
 
   // Fetch Actuator Data
   useEffect(() => {
@@ -103,7 +104,7 @@ const Management = () => {
       const fetchAllActuators = async () => {
         try {
           const user_id = localStorage.getItem("userId");
-          const response = await axios.get("http://localhost:3000/get-all-actuators", {
+          const response = await axios.get(`${BASE_URL}/get-all-actuators`, {
             params: { user_id },
           });
           setActuatorData(response.data);
@@ -115,14 +116,14 @@ const Management = () => {
 
       fetchAllActuators();
     }
-  }, [viewMode]);
+  }, [viewMode,BASE_URL]);
 
   // Fetch Sensor Data
 useEffect(() => {
   if (viewMode === "sensor" && userId) {
     const fetchSensorData = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/get-all-sensors", {
+        const response = await axios.get(`${BASE_URL}/get-all-sensors`, {
           params: { user_id: userId },
         });
 
@@ -135,7 +136,7 @@ useEffect(() => {
 
     fetchSensorData();
   }
-}, [viewMode, userId]); // Runs when viewMode or userId changes
+}, [viewMode, userId,BASE_URL]); // Runs when viewMode or userId changes
 
 // fetch pi data
 useEffect(() => {
@@ -143,7 +144,7 @@ useEffect(() => {
     setIsLoading(true);
 
     axios
-      .get("http://localhost:3000/get-all-pi", {
+      .get(`${BASE_URL}/get-all-pi`, {
         params: { user_id: userId },
       })
       .then((response) => {
@@ -157,7 +158,7 @@ useEffect(() => {
         setIsLoading(false);
       });
   }
-}, [viewMode, userId]);
+}, [viewMode, userId,BASE_URL]);
 
 
 // fetch gateway data
@@ -166,7 +167,7 @@ useEffect(() => {
 
   const fetchGatewayData = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/get-gateway-data?user_id=${userId}`);
+      const response = await axios.get(`${BASE_URL}/get-gateway-data?user_id=${userId}`);
       setGatewayData(response.data);
     } catch (err) {
       setError(err.response?.data?.message || "Error fetching data");
@@ -176,7 +177,7 @@ useEffect(() => {
   };
 
   fetchGatewayData();
-}, [userId]);
+}, [userId,BASE_URL]);
 
 const GatewayStatusCard = ({ gateway }) => {
   return (

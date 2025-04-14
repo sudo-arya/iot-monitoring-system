@@ -101,7 +101,7 @@ const Dashboard = () => {
             {/* overflow-x-auto */}
             {/* Wrap the graph component in a div with limited width and scrollable overflow */}
 
-            <WeatherForecastComponent locations={locations} /> 
+            <WeatherForecastComponent locations={locations} />
           </div>
 
           <div className="h-40 xl:visible hidden">&nbsp;</div>

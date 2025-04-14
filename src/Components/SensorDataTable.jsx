@@ -12,6 +12,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const [selectedSensorType, setSelectedSensorType] = useState("");
   const [loading, setLoading] = useState(true);
   const sseSourceRef = useRef(null);
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return "Invalid Date";
@@ -29,7 +30,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
   const fetchSensorData = useCallback(
     (piId) => {
       setLoading(true);
-      fetch(`/get-sensor-data?user_id=${userId}&pi_id=${piId}`)
+      fetch(`${BASE_URL}/get-sensor-data?user_id=${userId}&pi_id=${piId}`)
         .then((response) => response.json())
         .then((data) => {
           const formattedData = data.reduce((acc, sensor) => {
@@ -56,7 +57,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
 
     console.log(`Setting up SSE for ${sensorType} with Sensor ID: ${sensorId}`);
     const eventSource = new EventSource(
-      `http://localhost:5000/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
+      `${BASE_URL}/get-latest-sensor-data?user_id=${userId}&sensor_id=${sensorId}`
     );
 
     eventSource.onmessage = (event) => {
@@ -84,7 +85,7 @@ const SensorDataDisplay = ({ selectedLocation, userId }) => {
     };
 
     sseSourceRef.current = eventSource; // Save reference to the current SSE connection
-    setSelectedSensorType(sensorType); // Update the selected sensor type 
+    setSelectedSensorType(sensorType); // Update the selected sensor type
   };
 
   useEffect(() => {

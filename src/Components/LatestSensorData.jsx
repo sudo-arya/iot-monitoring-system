@@ -4,6 +4,7 @@ const LatestSensorData = ({ userId, piId, piName }) => {
   const [sensorData, setSensorData] = useState([]);
   const [error, setError] = useState(null);
   const sseSourceRef = useRef(null);  // Ref to hold the SSE connection
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   useEffect(() => {
     if (!userId || !piId) {
@@ -13,7 +14,7 @@ const LatestSensorData = ({ userId, piId, piName }) => {
 
     // Initialize EventSource
     const eventSource = new EventSource(
-      `http://localhost:5000/get-latest-sensors-for-pi?user_id=${userId}&pi_id=${piId}`
+      `${BASE_URL}/get-latest-sensors-for-pi?user_id=${userId}&pi_id=${piId}`
     );
 
     // Event handler for receiving SSE data
@@ -41,11 +42,11 @@ const LatestSensorData = ({ userId, piId, piName }) => {
     // Store event source in the ref for cleanup on unmount
     sseSourceRef.current = eventSource;
 
-    // Cleanup the EventSource when the component unmounts 
+    // Cleanup the EventSource when the component unmounts
     return () => {
       sseSourceRef.current?.close();
     };
-  }, [userId, piId]); // Dependency array to trigger effect when userId or piId change
+  }, [userId, piId,BASE_URL]); // Dependency array to trigger effect when userId or piId change
 
   if (error) {
     return <div className="text-red-500">{error}</div>;

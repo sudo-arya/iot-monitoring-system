@@ -7,6 +7,7 @@ const FloatInput = ({ user_id, piId, minValue, maxValue, onMinChange, onMaxChang
   const [selectedSensor, setSelectedSensor] = useState(null);
   const [localMinValue, setLocalMinValue] = useState(minValue);
   const [localMaxValue, setLocalMaxValue] = useState(maxValue);
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL;
 // eslint-disable-next-line
   let pi_id = piId || selectedLocation?.piId;
 
@@ -16,7 +17,7 @@ const FloatInput = ({ user_id, piId, minValue, maxValue, onMinChange, onMaxChang
     const fetchSensors = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/get-available-sensors?user_id=${user_id}&pi_id=${actualPiId}`
+          `${BASE_URL}/get-available-sensors?user_id=${user_id}&pi_id=${actualPiId}`
         );
         setSensors(response.data);
       } catch (error) {
@@ -27,7 +28,7 @@ const FloatInput = ({ user_id, piId, minValue, maxValue, onMinChange, onMaxChang
     if (user_id && actualPiId) {
       fetchSensors();
     }
-  }, [user_id, piId, selectedLocation]);
+  }, [user_id, piId, selectedLocation,BASE_URL]);
 
 
   // Auto-select sensor based on selectedSensorType
