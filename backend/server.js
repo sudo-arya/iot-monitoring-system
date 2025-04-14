@@ -1437,13 +1437,13 @@ app.post('/create-ticket', (req, res) => {
     const ticket_id = result.insertId;
     const messageText = `Issue: ${ticket_issue}\nMessage: ${ticket_message}`;
     const insertMessageQuery = `
-      INSERT INTO ?? (sender_role, message_text, ticket_id)
-      VALUES ('user', ?, ?)
+      INSERT INTO ?? (sender_role, ticket_issue, ticket_message, ticket_id)
+      VALUES ('user', ?,?, ?)
     `;
 
     const tableName = `${user_id}_ticket_messages`;
 
-    db.query(insertMessageQuery, [tableName, messageText, ticket_id], (msgErr) => {
+    db.query(insertMessageQuery, [tableName, ticket_issue, ticket_message, ticket_id], (msgErr) => {
       if (msgErr) {
         console.error('Message insert failed:', msgErr);
         return res.status(500).json({ error: 'Ticket created, but failed to log message.' });
@@ -1457,6 +1457,77 @@ app.post('/create-ticket', (req, res) => {
   });
 });
 
+// all tickets for userid 
+app.get('/get-live-tickets', (req, res) => {
+  const { user_id } = req.query;
+
+  if (!user_id) {
+    return res.status(400).send('User ID is required');
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  console.log(`SSE connection established for user_id: ${user_id}`);
+
+  // Track last sent tickets
+  let lastSentTickets = [];
+
+  // Helper to deeply compare tickets
+  const isTicketChanged = (oldTickets, newTickets) => {
+    return JSON.stringify(oldTickets) !== JSON.stringify(newTickets);
+  };
+
+  const fetchAndSendIfChanged = () => {
+    const query = `
+      SELECT ticket_id, ticket_status, ticket_issue, ticket_message, created_at, updated_at
+      FROM ticket_data
+      WHERE user_id = ?
+      ORDER BY updated_at DESC
+      LIMIT 50
+    `;
+
+    db.query(query, [user_id], (err, results) => {
+      if (err) {
+        console.error('Error querying DB:', err);
+        res.write(`event: error\ndata: ${JSON.stringify({ error: 'DB query error' })}\n\n`);
+        return;
+      }
+
+      if (results && results.length > 0) {
+        const newTickets = results.map(ticket => ({
+          ticket_id: ticket.ticket_id,
+          ticket_status: ticket.ticket_status,
+          ticket_issue: ticket.ticket_issue,
+          ticket_message: ticket.ticket_message,
+          created_at: ticket.created_at,
+          updated_at: ticket.updated_at
+        }));
+
+        if (isTicketChanged(lastSentTickets, newTickets)) {
+          res.write(`data: ${JSON.stringify(newTickets)}\n\n`);
+          lastSentTickets = newTickets;
+        }
+      }
+    });
+  };
+
+  const intervalId = setInterval(fetchAndSendIfChanged, 5000);
+
+  // Keep connection alive
+  const keepAlive = setInterval(() => res.write(':\n\n'), 15000);
+
+  req.on('close', () => {
+    console.log(`SSE connection closed for user_id: ${user_id}`);
+    clearInterval(intervalId);
+    clearInterval(keepAlive);
+    res.end();
+  });
+
+  // Send initial data immediately
+  fetchAndSendIfChanged();
+});
 
 
 

@@ -20,6 +20,9 @@ const Support = () => {
   const [userComment, setUserComment] = useState("");
   const [viewMode, setViewMode] = useState("open");
   const [chatMode, setChatMode] = useState(null);
+  const [selectedMessages, setSelectedMessages] = useState(""); // string instead of array
+  const [tickets, setTickets] = useState([]);
+
 
 
   useEffect(() => {
@@ -78,6 +81,9 @@ const Support = () => {
     // Prevent duplicate user message for auto-triggered non-buttons
     if (message.is_button) {
       // setSelectedMessageId(message.id); // Track the selected message ID
+      setSelectedMessages((prev) =>
+        prev ? `${prev} > ${message.text}` : message.text
+      );
       setChatFlow((prev) => [
         ...prev,
         {
@@ -122,35 +128,6 @@ const Support = () => {
     return input.replace(/['"\\;]/g, "").trim(); // Basic sanitization
   };
 
-  // const handleCommentSubmit = async () => {
-  //   const sanitized = sanitizeInput(userComment);
-  //   if (!sanitized) return;
-
-  //   try {
-  //     await axios.post("http://localhost:3000/submit-user-comment", {
-  //       user_id: userId,
-  //       comment: sanitized,
-  //     });
-
-  //     setChatFlow((prev) => [
-  //       ...prev,
-  //       {
-  //         userMessage: sanitized,
-  //       },
-  //       {
-  //         botMessage: "Thank you! Our team will follow up if needed.",
-  //       },
-  //     ]);
-  //   } catch (err) {
-  //     console.error("Error submitting comment", err);
-  //     setToastMessage("Failed to submit comment. Please try again.");
-  //     setToastColor("bg-red-200");
-  //   } finally {
-  //     setShowCommentInput(false);
-  //     setUserComment("");
-  //   }
-  // };
-
   const handleCommentSubmit = () => {
     const sanitized = sanitizeInput(userComment);
     if (!sanitized) return;
@@ -165,9 +142,99 @@ const Support = () => {
       },
     ]);
 
+    const updatedSelection = selectedMessages
+    ? `${selectedMessages} > ${sanitized}`
+    : sanitized;
+
+  setSelectedMessages(updatedSelection);
+
+  // Now delay calling submitTicket using setTimeout to ensure state updates
+  setTimeout(() => {
+    submitTicket(updatedSelection);
+  }, 0); // Run after state update
+
     setShowCommentInput(false);
     setUserComment("");
   };
+
+
+  async function submitTicket(selectionPath) {
+    const selections = selectionPath.split(" > ");
+    if (selections.length < 1) {
+      setToastMessage("Please select options and provide a comment.");
+      return;
+    }
+
+    const ticketMessage = selections[selections.length - 1];
+    const ticketIssue = selections.slice(0, -1).join(" > ");
+
+    if (!ticketMessage || !ticketIssue) {
+      setToastMessage("Missing required fields.");
+      return;
+    }
+
+    const payload = {
+      user_id: userId,
+      ticket_issue: ticketIssue,
+      ticket_message: ticketMessage,
+    };
+
+    try {
+      const response = await fetch('http://localhost:3000/create-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setToastMessage(`Ticket created!`);
+        // setToastMessage(`Ticket created! ID: ${result.ticket_id}`);
+        setSelectedMessages("");
+      } else {
+        setToastMessage(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Failed to send ticket:', error);
+      setToastMessage('Something went wrong. Please try again.');
+    }
+  }
+
+
+  useEffect(() => {
+    // Check if userId exists before starting SSE connection
+    if (!userId) {
+      setError('User ID is required');
+      return;
+    }
+
+    const eventSource = new EventSource(`http://localhost:5000/get-live-tickets?user_id=${userId}`);
+
+    // Listen for incoming events
+    eventSource.onmessage = (event) => {
+      try {
+        const newTickets = JSON.parse(event.data);
+        setTickets(newTickets);  // Update the state with new ticket data
+      } catch (err) {
+        console.error('Error parsing SSE data', err);
+        setError('Error receiving ticket updates');
+      }
+    };
+
+    eventSource.onerror = (err) => {
+      console.error('SSE error', err);
+      setError('Error connecting to the server');
+    };
+
+    // Cleanup when component unmounts or userId changes
+    return () => {
+      eventSource.close();
+    };
+  }, [userId]);
+
+
+
 
 
   return (
@@ -203,10 +270,8 @@ const Support = () => {
                 {/* open and closed ticket selection */}
                 <div className="flex text-center justify-center flex-row xl:flex-row text-white font-semibold text-base xl:mt-6 mt-4">
                   <div
-                    className={`flex xl:w-1/3 py-2 xl:px-1 px-4 justify-center items-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shodow-2xl  ${
-                      viewMode === "open"
-                        ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-                        : "bg-gray-400"
+                    className={`flex xl:w-1/3 py-2 xl:px-1 px-4 justify-center items-center xl:hover:bg-gradient-to-r xl:hover:from-gray-500 xl:hover:to-black transition-transform ease-in-out duration-300 cursor-pointer rounded-l-full shadow-2xl ${
+                      viewMode === "open" ? "bg-gradient-to-r from-blue-500 to-indigo-500" : "bg-gray-400"
                     }`}
                     onClick={() => setViewMode("open")}
                   >
@@ -214,9 +279,7 @@ const Support = () => {
                   </div>
                   <div
                     className={`flex xl:w-1/3 py-2 px-1 justify-center xl:hover:bg-gradient-to-r xl:hover:to-gray-500 xl:hover:from-black transition-transform ease-in-out duration-300 cursor-pointer rounded-r-full shadow-2xl ${
-                      viewMode === "closed"
-                        ? "bg-gradient-to-r from-blue-500 to-indigo-500"
-                        : "bg-gray-400"
+                      viewMode === "closed" ? "bg-gradient-to-r from-blue-500 to-indigo-500" : "bg-gray-400"
                     }`}
                     onClick={() => setViewMode("closed")}
                   >
@@ -225,29 +288,167 @@ const Support = () => {
                 </div>
 
                 {viewMode === "open" && (
-  <div className="grid xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4 mt-6">
-    <div
-      onClick={() => setChatMode("create")}
-      className="cursor-pointer bg-white hover:bg-blue-50 border-2 border-dashed border-blue-400 rounded-2xl p-6 text-center flex flex-col items-center justify-center gap-3 transition"
-    >
-      <div className="bg-blue-100 text-blue-600 rounded-full p-3">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
-          viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-            d="M12 4v16m8-8H4" />
-        </svg>
-      </div>
-      <span className="text-blue-700 font-semibold text-lg">Create a Ticket</span>
-    </div>
+                  <div className="mt-6">
+                    {/* Create Ticket Card - Full Width */}
+                    <div
+                      onClick={() => setChatMode("create")}
+                      className="cursor-pointer bg-white hover:bg-blue-50 border-2 border-dashed border-blue-400 rounded-2xl p-6 text-center flex flex-col items-center justify-center gap-3 transition w-full mb-6"
+                    >
+                      <div className="bg-blue-100 text-blue-600 rounded-full p-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                      </div>
+                      <span className="text-blue-700 font-semibold text-lg">Create a Ticket</span>
+                    </div>
 
-    {/* You can render actual tickets here */}
-    {/* <TicketCard ... /> */}
-  </div>
-)}
+                    {/* Ticket Cards - Grid Layout */}
+                    <div className="ticket-dashboard">
+                      {error && <div className="error text-red-500 font-semibold">{error}</div>}
+
+                      {/* <h2 className="text-2xl font-semibold text-gray-800 mb-4">Live Tickets for User {userId}</h2> */}
+
+                      {tickets.length === 0 ? (
+                        <p className="text-gray-500">No tickets found.</p>
+                      ) : (
+                        <div className="grid xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap- mt-6">
+                          {tickets
+                            .filter(ticket => ticket.ticket_status !== 'resolved' && ticket.ticket_status !== 'rejected')
+                            .map((ticket) => (
+                              <div
+                                key={ticket.ticket_id}
+                                className="bg-white shadow-md rounded-xl border border-gray-200 p-4 transition-transform hover:scale-[1.02] aspect-square flex flex-col justify-between text-center h-64"
+                              >
+                                {/* Top Section: Issue */}
+                                <div>
+                                  <p className="text-lg font-semibold text-gray-800 mb-2">{ticket.ticket_issue}</p>
+                                </div>
+
+                                {/* Bottom Section: Message, ID, Status, Timestamps */}
+                                <div className="mt-auto text-sm space-y-1">
+                                  {/* Scrollable Message */}
+                                  <div className="mb-2 max-h-12 overflow-y-auto px-1">
+                                    <p className="text-base text-gray-600 text-center whitespace-pre-wrap">
+                                      {ticket.ticket_message}
+                                    </p>
+                                  </div>
+
+                                  {/* Ticket ID and Status */}
+                                  <div className="flex flex-col justify-center items-center gap-1 text-base">
+                                    <div className="flex justify-center items-center">
+                                      <strong className="text-gray-600 mr-1">Ticket ID:</strong>
+                                      <p className="text-gray-900 font-medium">#{ticket.ticket_id}</p>
+                                    </div>
+
+                                    <div className="flex justify-center items-center">
+                                      <strong className="text-gray-600 mr-1">Status:</strong>
+                                      <p className={`font-semibold ${ticket.ticket_status === 'resolved' ? 'text-green-600' : 'text-yellow-600'}`}>
+                                        {ticket.ticket_status}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Divider */}
+                                  <div className="w-full h-px bg-gray-300 my-4" />
+
+                                  {/* Timestamps */}
+                                  <div className="flex justify-center items-center text-gray-600">
+                                    <strong className="mr-1">Created:</strong>
+                                    <p className="text-gray-500 text-xs">{new Date(ticket.created_at).toLocaleString()}</p>
+                                  </div>
+                                  <div className="flex justify-center items-center text-gray-600">
+                                    <strong className="mr-1">Updated:</strong>
+                                    <p className="text-gray-500 text-xs">{new Date(ticket.updated_at).toLocaleString()}</p>
+                                  </div>
+                                </div>
+                              </div>
+                          ))}
+
+                        </div>
 
 
+
+
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {viewMode === "closed" && (
+                  <div className="mt-6">
+                    {/* Ticket Cards - Grid Layout */}
+                    <div className="ticket-dashboard">
+                      {error && <div className="error text-red-500 font-semibold">{error}</div>}
+
+                      {(() => {
+                        const closedTickets = tickets.filter(
+                          ticket => ticket.ticket_status === 'resolved' || ticket.ticket_status === 'rejected'
+                        );
+
+                        if (closedTickets.length === 0) {
+                          return <p className="text-gray-500">No closed tickets found.</p>;
+                        }
+
+                        return (
+                          <div className="grid xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6 mt-6">
+                            {closedTickets.map((ticket) => (
+                              <div
+                                key={ticket.ticket_id}
+                                className="bg-white shadow-md rounded-xl border border-gray-200 p-4 transition-transform hover:scale-[1.02] aspect-square flex flex-col justify-between text-center h-64"
+                              >
+                                {/* Top Section: Issue */}
+                                <div>
+                                  <p className="text-lg font-semibold text-gray-800 mb-2">{ticket.ticket_issue}</p>
+                                </div>
+
+                                {/* Bottom Section: Message, ID, Status, Timestamps */}
+                                <div className="mt-auto text-sm space-y-1">
+                                  {/* Scrollable Message */}
+                                  <div className="mb-6 max-h-12 overflow-y-auto px-1">
+                                    <p className="text-base text-gray-600 text-center whitespace-pre-wrap">
+                                      {ticket.ticket_message}
+                                    </p>
+                                  </div>
+
+                                  {/* Ticket ID and Status */}
+                                  <div className="flex flex-col justify-center items-center gap-1 text-base">
+                                    <div className="flex justify-center items-center">
+                                      <strong className="text-gray-600 mr-1">Ticket ID:</strong>
+                                      <p className="text-gray-900 font-medium">#{ticket.ticket_id}</p>
+                                    </div>
+
+                                    <div className="flex justify-center items-center">
+                                      <strong className="text-gray-600 mr-1">Status:</strong>
+                                      <p className={`font-semibold ${ticket.ticket_status === 'resolved' ? 'text-green-600' : 'text-red-600'}`}>
+                                        {ticket.ticket_status}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Divider */}
+                                  <div className="w-full h-px bg-gray-300 my-4" />
+
+                                  {/* Timestamps */}
+                                  <div className="flex justify-center items-center text-gray-600">
+                                    <strong className="mr-1">Created:</strong>
+                                    <p className="text-gray-500 text-xs">{new Date(ticket.created_at).toLocaleString()}</p>
+                                  </div>
+                                  <div className="flex justify-center items-center text-gray-600">
+                                    <strong className="mr-1">Updated:</strong>
+                                    <p className="text-gray-500 text-xs">{new Date(ticket.updated_at).toLocaleString()}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
 
               </div>
+
             </div>
           </div>
 
@@ -293,7 +494,8 @@ const Support = () => {
                               </span>
                             </div>
                           )}
-                          {entry.userMessage}
+                          {/* {entry.userMessage} */}
+                          {/* {selectedMessages} */}
 
                           {entry.messages && !entry.messagesShown && (
                             <div className="space-y-2">
@@ -373,7 +575,7 @@ const Support = () => {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      handleCommentSubmit();
+                      handleCommentSubmit();  // Trigger the comment submission
                     }
                   }}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2"
@@ -387,7 +589,7 @@ const Support = () => {
 
                 {/* Send Button */}
                 <button
-                  onClick={handleCommentSubmit}
+                  onClick={handleCommentSubmit}  // Trigger the comment submission
                   className={`p-2 rounded-full transition ${
                     chatFlow.length &&
                     !chatFlow[chatFlow.length - 1]?.messages?.some((msg) => msg.next_level_exists) &&
