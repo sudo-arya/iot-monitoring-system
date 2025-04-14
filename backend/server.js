@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 // const WebSocket = require("ws");
 const cors = require("cors");
+const FRONT_URL = process.env.REACT_APP_API_FRONT_URL;
 
 
 // Initialize Express
@@ -17,7 +18,7 @@ app.use(cors());
 app.use(
   cors({
     origin: [
-      "http://localhost:3000" // Allow requests from React app on localhost
+      `${FRONT_URL}` // Allow requests from React app on localhost
       // "http://192.168.1.100:3000", // Replace with your local IP
     ],
     methods: ["GET", "POST"], // Specify allowed methods
@@ -1457,7 +1458,7 @@ app.post('/create-ticket', (req, res) => {
   });
 });
 
-// all tickets for userid 
+// all tickets for userid
 app.get('/get-live-tickets', (req, res) => {
   const { user_id } = req.query;
 
