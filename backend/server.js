@@ -28,21 +28,25 @@ app.use(bodyParser.json()); // To handle JSON request body
 const JWT_SECRET = `${process.env.JWT_SECRET_KEY}`;
 
 // MySQL connection setup using environment variables
-const db = mysql.createConnection({
-  host: process.env.DB_HOST, // Database host
-  user: process.env.DB_USER, // Database username
-  password: process.env.DB_PASSWORD, // Database password
-  database: process.env.DB_NAME, // Database name
+const db = mysql.createPool({
+  connectionLimit: 5, // Adjust as per your needs
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 // Connect to the database
-db.connect((err) => {
+// Test the MySQL database connection using connection pool
+db.getConnection((err, connection) => {
   if (err) {
-    console.error("Error connecting to the database:", err);
+    console.error("Error connecting to the MySQL database:", err);
     return;
   }
-  console.log("Connected to the MySQL database");
+  console.log("Successfully connected to the MySQL database using pool");
+  connection.release(); // Release the connection back to the pool
 });
+
 
 // SSE Middleware
 // function sseMiddleware(req, res, next) {
