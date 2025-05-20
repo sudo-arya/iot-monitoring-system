@@ -38,7 +38,7 @@ function ScrollToTop() {
 function AppContent() {
   const location = useLocation();
 
-  // Check if the current route is "/" (home) or "/signin" (login)
+  // Check if the current route is "/" (home) or "/signin" ( login )
   const isFooterVisible =
     location.pathname === "/" || location.pathname === "/signin";
 
